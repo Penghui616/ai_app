@@ -7,7 +7,7 @@ function png(rgb:number[]){const header=Buffer.alloc(13);header.writeUInt32BE(64
 const image=(name:string,rgb:number[])=>({name,mimeType:'image/png',buffer:png(rgb)});
 test('project CRUD, upload validation, persistence, training, prediction, invalidation and export',async({page})=>{
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
- await page.goto('/');
+ await page.goto('/#/training');
  await expect(page.getByRole('textbox',{name:'类别 1 名称',exact:true})).toHaveValue('类别1');
  await expect(page.getByRole('textbox',{name:'类别 2 名称',exact:true})).toHaveValue('类别2');
  await mkdir('qa',{recursive:true});
@@ -75,7 +75,7 @@ test('project CRUD, upload validation, persistence, training, prediction, invali
 });
 test('custom classes, duplicate-name validation and mobile layout',async({page})=>{
  await page.setViewportSize({width:390,height:844});
- await page.goto('/');
+ await page.goto('/#/training');
  await expect(page.getByRole('textbox',{name:'类别 1 名称',exact:true})).toHaveValue('类别1');
  await page.getByRole('button',{name:'新增类别',exact:true}).click();
  await expect(page.getByRole('textbox',{name:'类别 3 名称',exact:true})).toHaveValue('类别3');
@@ -91,7 +91,7 @@ test('custom classes, duplicate-name validation and mobile layout',async({page})
  await page.screenshot({path:'qa/mobile.png',fullPage:true});
 });
 test('mock run is recovered as cancelled after a page reload',async({page})=>{
- await page.goto('/');await expect(page.getByTestId('class-card')).toHaveCount(2);
+ await page.goto('/#/training');await expect(page.getByTestId('class-card')).toHaveCount(2);
  await page.getByTestId('class-card').nth(0).locator('input[type=file]').setInputFiles(image('一.png',[45,120,150]));
  await page.getByTestId('class-card').nth(1).locator('input[type=file]').setInputFiles(image('二.png',[150,90,45]));
  await expect(page.getByRole('button',{name:'开始演示训练',exact:true})).toBeEnabled();
@@ -107,7 +107,7 @@ test('optional WebMCP adapter shares state and rejects invalid input',async({pag
   const registry:Record<string,any>={};(window as any).__toolRegistry=registry;
   Object.defineProperty(document,'modelContext',{configurable:true,value:{registerTool(tool:any,options:any){registry[tool.name]=tool;options?.signal?.addEventListener('abort',()=>{if(registry[tool.name]===tool)delete registry[tool.name];});}}});
  });
- await page.goto('/');await expect(page.getByTestId('class-card')).toHaveCount(2);
+ await page.goto('/#/training');await expect(page.getByTestId('class-card')).toHaveCount(2);
  const initial=await page.evaluate(async()=>await (window as any).__toolRegistry.list_classification_projects.execute({}));
  expect(initial.projects).toHaveLength(1);
  const valid=await page.evaluate(async()=>await (window as any).__toolRegistry.create_classification_project.execute({name:'工具创建项目'}));

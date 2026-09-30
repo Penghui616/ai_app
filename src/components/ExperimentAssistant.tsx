@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Drawer, Input, Tag } from 'antd';
-import { ArrowUpOutlined, BulbOutlined, CloseOutlined, CommentOutlined, DatabaseOutlined, DeleteOutlined, ExperimentOutlined } from '@ant-design/icons';
+import { useEffect, useState } from 'react';
+import { Tag } from 'antd';
+import AssistantShell from './AssistantShell';
+import { DatabaseOutlined, ExperimentOutlined } from '@ant-design/icons';
 import type { Prediction, Project } from '../types';
 import { captureExperiment, getDemoReply, HISTORY_LIMIT, readAssistantHistory, saveAssistantHistory } from '../services/assistant';
 import type { AssistantMessage, HelpTopic } from '../services/assistant';
@@ -25,8 +26,6 @@ export default function ExperimentAssistant({ project, prediction, entry, onClos
   const [draft, setDraft] = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic>('question');
-  const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<React.ComponentRef<typeof Input.TextArea>>(null);
   const context = captureExperiment(project, prediction);
   const total = context.classes.reduce((sum, item) => sum + item.count, 0);
 
@@ -36,7 +35,6 @@ export default function ExperimentAssistant({ project, prediction, entry, onClos
     setSelectedTopic(entry.topic);
     setDraft(prompts.find(item => item.topic === entry.topic)?.question ?? '');
   }, [entry]);
-  useEffect(() => { if (entry) endRef.current?.scrollIntoView({ block: 'nearest' }); }, [messages, entry]);
 
   const persist = (next: AssistantMessage[]) => {
     setMessages(next);
@@ -51,30 +49,21 @@ export default function ExperimentAssistant({ project, prediction, entry, onClos
       { id: crypto.randomUUID(), role: 'assistant', text: reply.text, context: reply.context } as AssistantMessage,
     ].slice(-HISTORY_LIMIT));
     setDraft(''); setSelectedTopic('question');
-    inputRef.current?.focus();
   };
 
-  return <Drawer open={!!entry} onClose={onClose} placement="right" width="min(440px, 100vw)" mask={false}
-    rootClassName="experiment-assistant" closeIcon={<CloseOutlined aria-label="收起实验助手" />}
-    title={<div className="assistant-title"><span className="assistant-symbol"><CommentOutlined aria-hidden="true" /></span><div><b>实验助手</b><small>图像分类 · 陪你理解每一次实验</small></div></div>}
-    extra={<Button type="text" size="small" aria-label="清空辅导记录" disabled={!messages.length} onClick={() => setConfirmClear(true)} icon={<DeleteOutlined aria-hidden="true" />} />}
-    styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }, header: { padding: '20px 16px' } }}>
-    <div className="assistant-mode"><span className="assistant-mode-dot" />助手演示 · 尚未接入 AI<span>预设回复</span></div>
-    {confirmClear && <div className="assistant-clear-confirm" role="alert"><span>清空当前项目的辅导记录？</span><Button size="small" onClick={() => setConfirmClear(false)}>保留</Button><Button size="small" danger onClick={() => { persist([]); setConfirmClear(false); }}>清空</Button></div>}
-    <div className="assistant-context" data-testid="assistant-context">
+  return <AssistantShell open={!!entry} onClose={onClose} title="实验助手" subtitle="图像分类训练 · 陪你理解每一次实验"
+    context={<div className="assistant-context" data-testid="assistant-context">
       <div className="assistant-context-top"><span><ExperimentOutlined aria-hidden="true" /> 当前实验</span><Tag bordered={false} color="blue">{context.stage}</Tag></div>
       <strong title={project.name}>{project.name}</strong>
       <div className="assistant-stat-row"><span>{context.classes.length} 个类别</span><span>{total} 张图片</span><span>数据版本 {project.revision}</span></div>
       <p>状态由程序统计；训练与预测仍为模拟。</p>
-    </div>
-    {storageError && <Alert className="assistant-storage-error" type="warning" showIcon message={storageError} />}
-    <div className="assistant-conversation" role="log" aria-label="实验辅导对话" aria-live="polite" aria-relevant="additions">
-      <div className="assistant-welcome">
-        <span className="assistant-welcome-icon"><BulbOutlined aria-hidden="true" /></span>
-        <h3>从一个好问题开始</h3>
-        <p>一起观察数据、提出猜想，再用实验验证。你想先了解哪一部分？</p>
-        <div className="assistant-capabilities"><span>理解概念</span><span>寻找依据</span><span>设计验证</span></div>
-      </div>
+    </div>}
+    welcomeTitle="从一个好问题开始" welcomeText="一起观察数据、提出猜想，再用实验验证。你想先了解哪一部分？" capabilities={['理解概念','寻找依据','设计验证']}
+    prompts={prompts.map(item => ({ label: item.label, onClick: () => send(item.question, item.topic) }))}
+    draft={draft} onDraftChange={value => { setDraft(value); setSelectedTopic('question'); }} onSend={() => send(draft, selectedTopic)}
+    inputLabel="向实验助手提问" placeholder="例如：把同一张图片复制多遍有用吗？" messageCount={messages.length}
+    storageError={storageError} confirmClear={confirmClear} onRequestClear={() => setConfirmClear(true)} onCancelClear={() => setConfirmClear(false)} onClear={() => { persist([]); setConfirmClear(false); }}
+    localNote="仅本机保存最近 20 轮对话，按项目隔离；清理浏览器数据会删除记录。">
       {messages.map(message => <div key={message.id} className={`assistant-message ${message.role}`}>
         <div className="assistant-message-label">{message.role === 'user' ? '你' : '实验助手 · 演示回复'}</div>
         <div className="assistant-bubble">{message.text}</div>
@@ -87,16 +76,5 @@ export default function ExperimentAssistant({ project, prediction, entry, onClos
           <p>未读取图片内容；没有执行任何修改操作。</p>
         </details>}
       </div>)}
-      <div ref={endRef} />
-    </div>
-    <div className="assistant-composer">
-      <div className="assistant-prompts">{prompts.map(item => <Button key={item.topic} size="small" onClick={() => send(item.question, item.topic)}>{item.label}</Button>)}</div>
-      <div className="assistant-input-box"><Input.TextArea ref={inputRef} aria-label="向实验助手提问" placeholder="例如：把同一张图片复制多遍有用吗？" value={draft} maxLength={1000} autoSize={{ minRows: 2, maxRows: 4 }} variant="borderless"
-        onChange={event => { setDraft(event.target.value); setSelectedTopic('question'); }}
-        onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(draft, selectedTopic); } }} />
-        <div className="assistant-input-bottom"><span>{draft.length}/1000 · Shift+Enter 换行</span><Button type="primary" shape="circle" aria-label="发送问题" disabled={!draft.trim()} icon={<ArrowUpOutlined aria-hidden="true" />} onClick={() => send(draft, selectedTopic)} /></div>
-      </div>
-      <p className="assistant-local-note">仅本机保存最近 20 轮对话，按项目隔离；清理浏览器数据会删除记录。</p>
-    </div>
-  </Drawer>;
+  </AssistantShell>;
 }

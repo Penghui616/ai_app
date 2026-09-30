@@ -5,7 +5,7 @@ test.use({ actionTimeout: 10000, reducedMotion: 'reduce' });
 test('assistant uses live sample metadata, keeps immutable evidence and isolates project history', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/#/training');
   await expect(page.getByTestId('class-card')).toHaveCount(2);
   const initialTitle = await page.locator('h1').innerText();
   await page.getByRole('button', { name: '实验助手 演示', exact: true }).click();
@@ -64,7 +64,7 @@ test('mobile assistant remains usable and reports blocked storage', async ({ pag
       return original.call(this, key, value);
     };
   });
-  await page.goto('/');
+  await page.goto('/#/training');
   await page.getByRole('button', { name: '实验助手 演示', exact: true }).click();
   const panel = page.locator('.experiment-assistant');
   await panel.getByRole('textbox', { name: '向实验助手提问' }).fill('复制同一张图片可以吗？');
