@@ -1,17 +1,44 @@
-import { Button, Tag } from 'antd';
+import { useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { ArrowRightOutlined, AudioOutlined, CameraOutlined, ExperimentOutlined, MessageOutlined, TranslationOutlined } from '@ant-design/icons';
 import ContextAssistant from './ContextAssistant';
 interface Props { onExperience: () => void; onTraining: () => void }
+interface TileProps { name: string; description: string; code: string; icon: ReactNode; onOpen?: () => void }
+function ApplicationTile({ name, description, code, icon, onOpen }: TileProps) {
+  return <button className={'catalog-tile' + (!onOpen ? ' unavailable' : '')} disabled={!onOpen} onClick={onOpen} aria-label={onOpen ? '打开' + name : name + '，开发中'}>
+    <span className="catalog-tile-title">{name}{onOpen && <ArrowRightOutlined aria-hidden="true" />}</span>
+    <span className="catalog-tile-description">{description}</span>
+    <span className="catalog-tile-status">{onOpen ? '前端演示' : '开发中'}</span>
+    <span className="catalog-tile-code" aria-hidden="true">{code}</span>
+    <span className="catalog-tile-icon" aria-hidden="true">{icon}</span>
+  </button>;
+}
 export default function ApplicationHub({ onExperience, onTraining }: Props) {
-  return <div className="application-hub">
-    <section className="hub-hero"><div className="hub-hero-copy"><div className="eyebrow">AI LEARNING LAB · 应用探索</div><h1>从一次体验，开始理解 AI</h1><p>让图片变成问题，让实验带来发现。<br/>选择一个应用，开启你的探索。</p><div className="hero-pills"><span>体验应用</span><i>→</i><span>动手实验</span><i>→</i><span>理解原理</span></div></div><div className="hub-illustration" aria-hidden="true"><div className="illustration-input"><CameraOutlined /><span>观察</span></div><div className="illustration-link"/><div className="illustration-model"><ExperimentOutlined /><b>AI</b></div><div className="illustration-link"/><div className="illustration-output"><span/><span/><span/><small>探索结果</small></div><span className="illustration-caption">每一个发现，都从好奇开始</span></div></section>
-    <div className="hub-section-heading"><div><h2>选择你的探索方式</h2><p>先感受 AI 能做什么，再探索它如何学习。</p></div><Tag>2 个前端应用</Tag></div>
-    <div className="application-grid">
-      <article className="application-card experience-app"><div className="application-card-top"><span className="application-icon"><CameraOutlined aria-hidden="true" /></span><Tag color="cyan">先来体验</Tag></div><span className="application-kicker">IMAGE CLASSIFICATION · EXPERIENCE</span><h2>图像分类体验</h2><p>上传一张图片，认识分类结果的展示方式，尝试从不同角度观察同一个物体。</p><div className="application-steps"><span>上传图片</span><i>→</i><span>查看结果</span><i>→</i><span>记录观察</span></div><div className="application-card-footer"><span>无需准备训练数据</span><Button type="primary" onClick={onExperience}>开始体验 <ArrowRightOutlined aria-hidden="true" /></Button></div></article>
-      <article className="application-card training-app"><div className="application-card-top"><span className="application-icon"><ExperimentOutlined aria-hidden="true" /></span><Tag color="blue">动手探索</Tag></div><span className="application-kicker">IMAGE CLASSIFICATION · TRAINING</span><h2>图像分类训练</h2><p>自己定义类别、准备图片样本，探索数据、训练设置与分类结果之间的关系。</p><div className="application-steps"><span>准备样本</span><i>→</i><span>训练模型</span><i>→</i><span>测试改进</span></div><div className="application-card-footer"><span>自定义你的分类任务</span><Button type="primary" ghost onClick={onTraining}>进入训练 <ArrowRightOutlined aria-hidden="true" /></Button></div></article>
+  const experienceRef = useRef<HTMLElement>(null);
+  const experimentRef = useRef<HTMLElement>(null);
+  const [section, setSection] = useState<'experience' | 'experiment'>('experience');
+  const selectSection = (next: 'experience' | 'experiment') => {
+    setSection(next);
+    (next === 'experience' ? experienceRef : experimentRef).current?.scrollIntoView({ block: 'start', behavior: 'auto' });
+  };
+  return <div className="catalog-layout">
+    <aside className="catalog-sidebar"><div className="catalog-sidebar-label">应用分类</div><nav aria-label="应用分类">
+      <button className={section === 'experience' ? 'selected' : ''} aria-pressed={section === 'experience'} onClick={() => selectSection('experience')}><CameraOutlined aria-hidden="true" />应用体验</button>
+      <button className={section === 'experiment' ? 'selected' : ''} aria-pressed={section === 'experiment'} onClick={() => selectSection('experiment')}><ExperimentOutlined aria-hidden="true" />应用实验</button>
+    </nav></aside>
+    <div className="catalog-content"><header className="catalog-heading"><h1>应用选择</h1><p>选择一个应用，开始体验或实验。</p></header>
+      <section className="catalog-section" ref={experienceRef} aria-labelledby="experience-category"><h2 id="experience-category"><CameraOutlined aria-hidden="true" />应用体验<span>使用已有应用，观察 AI 的表现</span></h2><div className="catalog-grid">
+        <ApplicationTile name="图像分类体验" description="上传图片，查看分类结果" code="A1" icon={<CameraOutlined />} onOpen={onExperience}/>
+        <ApplicationTile name="语音识别体验" description="录制声音，体验语音转文字" code="A2" icon={<AudioOutlined />}/>
+        <ApplicationTile name="翻译体验" description="输入文字，体验不同语言的转换" code="A3" icon={<TranslationOutlined />}/>
+      </div></section>
+      <section className="catalog-section" ref={experimentRef} aria-labelledby="experiment-category"><h2 id="experiment-category"><ExperimentOutlined aria-hidden="true" />应用实验<span>动手构建应用，测试与改进</span></h2><div className="catalog-grid">
+        <ApplicationTile name="图像分类实验" description="准备数据、训练模型并测试效果" code="B1" icon={<ExperimentOutlined />} onOpen={onTraining}/>
+        <ApplicationTile name="语音交互实验" description="配置语音指令，探索交互过程" code="B2" icon={<MessageOutlined />}/>
+        <ApplicationTile name="翻译应用实验" description="构建翻译应用，比较与分析结果" code="B3" icon={<TranslationOutlined />}/>
+      </div></section>
+      <p className="catalog-demo-note">当前可用入口均为前端演示，尚未接入真实模型。助手使用预设回复。</p>
     </div>
-    <div className="hub-demo-note">当前为前端演示：识别与训练均未接入真实模型，助手使用预设回复。</div>
-    <section className="coming-section"><h2>接下来，探索更多 AI 应用</h2><div className="coming-grid">{[{ name: '语音识别', text: '观察声音如何变成文字', icon: <AudioOutlined /> },{ name: '语音交互', text: '用声音与虚拟角色互动', icon: <MessageOutlined /> },{ name: '翻译体验', text: '探索语言与上下文的关系', icon: <TranslationOutlined /> }].map(item => <article className="coming-card" key={item.name}><span className="coming-icon" aria-hidden="true">{item.icon}</span><div><h3>{item.name}</h3><p>{item.text}</p></div><Tag>规划中</Tag></article>)}</div></section>
-    <ContextAssistant mode="navigation" context="当前可进入图像分类体验与图像分类训练；语音和翻译尚未开放。这里只读取应用介绍，不读取训练项目。" onExperience={onExperience} onTraining={onTraining}/>
+    <ContextAssistant mode="navigation" context="应用分为应用体验和应用实验。当前可进入图像分类体验与图像分类实验；语音和翻译尚未开放。这里只读取应用介绍，不读取训练项目。" onExperience={onExperience} onTraining={onTraining}/>
   </div>;
 }

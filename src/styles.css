@@ -73,3 +73,33 @@
 @media(max-width:700px){.application-grid{grid-template-columns:1fr;gap:17px}.hub-hero{padding:26px 23px;margin-top:0;margin-bottom:27px}.hub-hero h1{font-size:25px;letter-spacing:-.5px}.hub-hero .eyebrow{font-size:9px}.hub-hero p{font-size:13px}.hero-pills{gap:8px;font-size:11px}.hero-pills>span{padding:5px 8px}.hub-section-heading{align-items:flex-start}.hub-section-heading h2{font-size:16px}.hub-section-heading p{font-size:12px}.hub-section-heading>.ant-tag{font-size:10px}.application-card{padding:23px 23px 0}.application-card-footer{flex-direction:row;align-items:center}.application-card-footer>span{font-size:11px}.application-card h2{font-size:21px}.application-card p{font-size:12px}.coming-section{margin-top:24px}.experience-model{padding:16px;gap:12px}.experience-model p{font-size:11px}.experience-input-card .ant-card-body{padding:18px}.experience-preview,.experience-input-card .ant-upload-btn{height:240px}.experience-challenge{padding:23px 20px}.experience-challenge h2{font-size:18px}.experience-record-grid{grid-template-columns:1fr}.experience-next{align-items:flex-start;flex-direction:column}.image-experience h1{font-size:22px;line-height:1.5}.experience-history .hub-section-heading{flex-direction:column}.topbar nav{overflow-x:auto;flex-wrap:nowrap}.topbar nav .ant-btn{font-size:12px;padding:4px 8px;flex-shrink:0}.view-apps,.view-experience{padding-bottom:70px}.application-kicker{font-size:9px}.application-steps{font-size:11px;gap:10px}}
 
 @media(max-width:700px){.hub-hero{padding:23px}.hub-hero p{margin:10px 0 12px}.application-card-top{margin-bottom:16px}.application-steps{margin:17px 0 20px}.application-card-footer{padding:16px 0}}
+
+/* Compact two-category application catalogue. */
+.workspace.view-apps{padding:0;max-width:none;background:#fff}
+.catalog-layout{display:grid;grid-template-columns:190px minmax(0,1fr);min-height:calc(100vh - 139px)}
+.catalog-sidebar{border-right:1px solid #e8edf3;background:#fcfdff;padding:35px 12px}
+.catalog-sidebar-label{font-size:12px;color:#a0adbf;padding:0 19px 18px}
+.catalog-sidebar nav{display:flex;flex-direction:column;gap:6px;position:sticky;top:20px}
+.catalog-sidebar button{border:0;background:transparent;display:flex;align-items:center;gap:12px;padding:14px 18px;text-align:left;color:#7e8ca2;cursor:pointer;border-radius:7px;font-size:14px}
+.catalog-sidebar button.selected{background:#edf3ff;color:#3975d2;font-weight:500}
+.catalog-sidebar button:hover{background:#f1f5fc}.catalog-sidebar button:focus-visible{outline:2px solid #3975d2;outline-offset:2px}
+.catalog-content{padding:35px 40px 60px;max-width:1440px;width:100%;margin:0 auto}
+.catalog-heading{margin-bottom:29px}.catalog-heading h1{font-size:24px;font-weight:550;color:#34445d}.catalog-heading p{font-size:13px;color:#9ba7b8;margin:9px 0 0}
+.catalog-section{margin-bottom:29px;scroll-margin-top:20px}
+.catalog-section h2{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;color:#64758c;margin:0 0 16px}
+.catalog-section h2>.anticon{font-size:17px;color:#899aaf}.catalog-section h2>span:last-child:not(.anticon){font-size:12px;color:#acb6c4;font-weight:400;margin-left:8px}
+.catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid #e0e6ee;border-left:1px solid #e0e6ee}
+.catalog-tile{position:relative;min-width:0;min-height:210px;display:flex;flex-direction:column;align-items:flex-start;border:0;border-right:1px solid #e0e6ee;border-bottom:1px solid #e0e6ee;background:#fff;padding:26px 26px 24px;text-align:left;cursor:pointer;transition:background .15s}
+.catalog-tile:hover:not(:disabled){background:#f1f6ff}.catalog-tile:focus-visible{outline:2px solid #3975d2;outline-offset:-3px;z-index:1}
+.catalog-tile-title{font-size:18px;color:#33455e;display:flex;align-items:center;gap:13px;font-weight:500}.catalog-tile-title .anticon{font-size:13px;color:#8fa3bd}
+.catalog-tile-description{display:block;font-size:12px;line-height:1.7;color:#9ca9ba;margin-top:11px;max-width:100%}
+.catalog-tile-status{font-size:11px;color:#809bc3;margin-top:17px}
+.catalog-tile-code{font-size:27px;font-weight:700;color:#e5ebf3;margin-top:auto;line-height:1;padding-top:19px}
+.catalog-tile-icon{position:absolute;right:29px;bottom:23px;font-size:42px;color:#83a9df;display:grid;place-items:center;width:78px;height:68px;background:linear-gradient(135deg,#f4f8ff,#ebf3ff);border-bottom:2px solid #c6d9f8;border-radius:12px 12px 0 0}
+.catalog-tile.unavailable{cursor:default;background:#fdfefe}.catalog-tile.unavailable .catalog-tile-title{color:#8592a5}.catalog-tile.unavailable .catalog-tile-description,.catalog-tile.unavailable .catalog-tile-status{color:#b0bac7}.catalog-tile.unavailable .catalog-tile-icon{color:#bac9dc;background:#f6f8fc;border-color:#e5ebf3}
+.catalog-demo-note{font-size:12px;color:#ac9b7c;margin:5px 0 0;line-height:1.8}
+.app-shell:has(.catalog-layout) .topbar nav>.ant-btn:nth-child(2),.app-shell:has(.catalog-layout) .topbar nav>.ant-btn:nth-child(3){display:none}
+@media(min-width:1600px){.catalog-content{padding-top:40px}.catalog-tile{min-height:230px}}
+@media(max-width:1100px){.catalog-layout{grid-template-columns:160px minmax(0,1fr)}.catalog-content{padding:30px 25px 60px}.catalog-tile{padding:23px 19px;min-height:215px}.catalog-tile-title{font-size:16px}.catalog-tile-description{font-size:11px}.catalog-tile-icon{right:18px;width:61px;height:57px;font-size:33px}.catalog-section h2>span:last-child:not(.anticon){font-size:11px}}
+@media(max-width:800px){.catalog-layout{grid-template-columns:1fr}.catalog-sidebar{padding:12px 20px;border-right:0;border-bottom:1px solid #e8edf3}.catalog-sidebar-label{display:none}.catalog-sidebar nav{flex-direction:row;position:static}.catalog-sidebar button{padding:10px 17px;font-size:13px}.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.catalog-section h2{flex-wrap:wrap}.catalog-content{padding:26px 24px 75px}}
+@media(max-width:500px){.catalog-content{padding:23px 18px 85px}.catalog-heading h1{font-size:22px}.catalog-heading{margin-bottom:24px}.catalog-grid{grid-template-columns:1fr}.catalog-tile{min-height:157px;padding:23px}.catalog-tile-title{font-size:17px}.catalog-tile-description{max-width:calc(100% - 65px)}.catalog-tile-status{margin-top:10px}.catalog-tile-code{font-size:21px;padding-top:13px}.catalog-tile-icon{width:65px;height:58px;right:23px;bottom:20px}.catalog-section h2>span:last-child:not(.anticon){display:none}.catalog-demo-note{font-size:11px}}

@@ -5,7 +5,14 @@ test.use({ actionTimeout: 10000, reducedMotion: 'reduce' });
 test('application navigation, history routing and separate assistant roles', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: '从一次体验，开始理解 AI' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '应用选择', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^应用体验/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^应用实验/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: '语音识别体验，开发中', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: '应用实验', exact: true }).click();
+  await expect(page.getByRole('button', { name: '应用实验', exact: true })).toHaveAttribute('aria-pressed','true');
+  await page.getByRole('button', { name: '应用体验', exact: true }).click();
+  await page.evaluate(() => window.scrollTo(0,0));
   await mkdir('qa', { recursive: true });
   await page.screenshot({ path: 'qa/application-hub.png', fullPage: true, animations: 'disabled' });
   await page.getByRole('button', { name: '应用导航助手 演示', exact: true }).click();
@@ -23,7 +30,7 @@ test('application navigation, history routing and separate assistant roles', asy
   await page.getByRole('button', { name: '应用导航助手 演示', exact: true }).click();
   await expect(page.locator('.assistant-message')).toHaveCount(2);
   await page.getByRole('button', { name: '关闭', exact: true }).click();
-  await page.getByRole('button', { name: '进入训练', exact: true }).click();
+  await page.getByRole('button', { name: '打开图像分类实验', exact: true }).click();
   await expect(page.getByTestId('class-card')).toHaveCount(2);
   const category = page.getByRole('textbox', { name: '类别 1 名称', exact: true });
   await category.fill('保留原工作台'); await category.press('Enter');
@@ -74,7 +81,7 @@ test('mobile catalogue and experience layout', async ({ page }) => {
   await page.goto('/');
   await page.screenshot({ path: 'qa/application-hub-mobile.png', fullPage: true, animations: 'disabled' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole('button', { name: '开始体验', exact: true }).click();
+  await page.getByRole('button', { name: '打开图像分类体验', exact: true }).click();
   await page.getByRole('button', { name: '使用示例插画', exact: true }).click();
   await page.getByRole('button', { name: '查看演示结果', exact: true }).click();
   await expect(page.locator('.experience-record')).toHaveCount(1);
