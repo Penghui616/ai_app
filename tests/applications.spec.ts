@@ -34,7 +34,7 @@ test('application navigation, history routing and separate assistant roles', asy
   await expect(page.getByTestId('class-card')).toHaveCount(2);
   const category = page.getByRole('textbox', { name: '类别 1 名称', exact: true });
   await category.fill('保留原工作台'); await category.press('Enter');
-  await page.getByRole('button', { name: '应用选择', exact: true }).click();
+  await page.getByRole('button', { name: '返回应用选择', exact: true }).click();
   await page.goBack();
   await expect(category).toHaveValue('保留原工作台');
   await page.reload();

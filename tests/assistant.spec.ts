@@ -42,6 +42,7 @@ test('assistant uses live sample metadata, keeps immutable evidence and isolates
   await page.getByRole('button', { name: '实验助手 演示', exact: true }).click();
   await expect(panel.locator('.assistant-message')).toHaveCount(0);
   await page.getByRole('button', { name: '关闭', exact: true }).click();
+ await page.getByRole('button', { name: '返回应用选择', exact: true }).click();
   await page.getByRole('button', { name: '我的项目', exact: true }).click();
   await page.getByRole('button', { name: initialTitle, exact: true }).click();
   await page.getByRole('button', { name: '实验助手 演示', exact: true }).click();

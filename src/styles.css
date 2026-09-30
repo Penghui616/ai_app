@@ -98,8 +98,10 @@
 .catalog-tile-icon{position:absolute;right:29px;bottom:23px;font-size:42px;color:#83a9df;display:grid;place-items:center;width:78px;height:68px;background:linear-gradient(135deg,#f4f8ff,#ebf3ff);border-bottom:2px solid #c6d9f8;border-radius:12px 12px 0 0}
 .catalog-tile.unavailable{cursor:default;background:#fdfefe}.catalog-tile.unavailable .catalog-tile-title{color:#8592a5}.catalog-tile.unavailable .catalog-tile-description,.catalog-tile.unavailable .catalog-tile-status{color:#b0bac7}.catalog-tile.unavailable .catalog-tile-icon{color:#bac9dc;background:#f6f8fc;border-color:#e5ebf3}
 .catalog-demo-note{font-size:12px;color:#ac9b7c;margin:5px 0 0;line-height:1.8}
-.app-shell:has(.catalog-layout) .topbar nav>.ant-btn:nth-child(2),.app-shell:has(.catalog-layout) .topbar nav>.ant-btn:nth-child(3){display:none}
+
 @media(min-width:1600px){.catalog-content{padding-top:40px}.catalog-tile{min-height:230px}}
 @media(max-width:1100px){.catalog-layout{grid-template-columns:160px minmax(0,1fr)}.catalog-content{padding:30px 25px 60px}.catalog-tile{padding:23px 19px;min-height:215px}.catalog-tile-title{font-size:16px}.catalog-tile-description{font-size:11px}.catalog-tile-icon{right:18px;width:61px;height:57px;font-size:33px}.catalog-section h2>span:last-child:not(.anticon){font-size:11px}}
 @media(max-width:800px){.catalog-layout{grid-template-columns:1fr}.catalog-sidebar{padding:12px 20px;border-right:0;border-bottom:1px solid #e8edf3}.catalog-sidebar-label{display:none}.catalog-sidebar nav{flex-direction:row;position:static}.catalog-sidebar button{padding:10px 17px;font-size:13px}.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.catalog-section h2{flex-wrap:wrap}.catalog-content{padding:26px 24px 75px}}
 @media(max-width:500px){.catalog-content{padding:23px 18px 85px}.catalog-heading h1{font-size:22px}.catalog-heading{margin-bottom:24px}.catalog-grid{grid-template-columns:1fr}.catalog-tile{min-height:157px;padding:23px}.catalog-tile-title{font-size:17px}.catalog-tile-description{max-width:calc(100% - 65px)}.catalog-tile-status{margin-top:10px}.catalog-tile-code{font-size:21px;padding-top:13px}.catalog-tile-icon{width:65px;height:58px;right:23px;bottom:20px}.catalog-section h2>span:last-child:not(.anticon){display:none}.catalog-demo-note{font-size:11px}}
+
+.topbar .header-status{margin-left:auto}

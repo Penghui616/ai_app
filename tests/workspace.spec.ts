@@ -62,6 +62,7 @@ test('project CRUD, upload validation, persistence, training, prediction, invali
  await page.getByRole('button',{name:'删除图片 叶片一.png',exact:true}).click();
  await expect(page.getByText('样本已更新，请重新完成演示训练。',{exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'开始演示预测',exact:true})).toBeDisabled();
+ await page.getByRole('button', { name: '返回应用选择', exact: true }).click();
  await page.getByRole('button',{name:'我的项目',exact:true}).click();
  await page.screenshot({path:'qa/projects.png',fullPage:true});
  await page.getByRole('button',{name:'重命名项目 植物分类实验',exact:true}).click();
