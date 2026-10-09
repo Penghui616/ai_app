@@ -24,7 +24,7 @@ test('application navigation, history routing and separate assistant roles', asy
   await page.getByRole('button', { name: '图像体验助手 演示', exact: true }).click();
   await expect(page.locator('.assistant-message')).toHaveCount(0);
   await page.getByRole('button', { name: '分数代表什么', exact: true }).click();
-  await expect(page.locator('.assistant-bubble').last()).toContainText('只是固定的界面演示数值');
+  await expect(page.locator('.assistant-bubble').last()).toContainText('真实推理分数');
   await page.getByRole('button', { name: '关闭', exact: true }).click();
   await page.getByRole('button', { name: '返回应用选择', exact: true }).click();
   await page.getByRole('button', { name: '应用导航助手 演示', exact: true }).click();
@@ -45,14 +45,14 @@ test('application navigation, history routing and separate assistant roles', asy
 test('experience demo validation, local records, notes, reload, export and deletion', async ({ page }) => {
   await page.goto('/#/experience');
   await page.getByText('文件',{exact:true}).click();
-  const demo = page.getByRole('button', { name: '查看演示结果', exact: true });
+  const demo = page.getByRole('button', { name: '开始识别', exact: true });
   await expect(demo).toBeDisabled();
   await page.getByTestId('experience-upload').locator('input[type=file]').setInputFiles({ name: 'bad.txt', mimeType: 'text/plain', buffer: Buffer.from('not an image') });
   await expect(page.getByText('请上传 JPG、PNG 或 WebP 格式的图片。', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '使用示例插画', exact: true }).click();
   await expect(demo).toBeEnabled(); await demo.click();
   await expect(page.locator('.experience-record')).toHaveCount(1);
-  await expect(page.getByText('固定演示值，与图片内容无关。', { exact: true })).toBeVisible();
+  await expect(page.getByText('真实模型结果', { exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: '我的观察与猜想', exact: true }).fill('换个角度会不会影响结果？');
   await page.getByRole('button', { name: '保存观察', exact: true }).click();
   await expect(page.locator('.experience-record')).toContainText('换个角度会不会影响结果？');
@@ -63,10 +63,10 @@ test('experience demo validation, local records, notes, reload, export and delet
   await page.locator('.experience-record-open').click();
   await expect(page.getByRole('textbox', { name: '我的观察与猜想', exact: true })).toHaveValue('换个角度会不会影响结果？');
   const downloadEvent = page.waitForEvent('download');
-  await page.getByRole('button', { name: '导出演示记录', exact: true }).click();
+  await page.getByRole('button', { name: '导出识别记录', exact: true }).click();
   const download = await downloadEvent;
   const result = JSON.parse(await readFile((await download.path())!, 'utf8'));
-  expect(result.isMock).toBe(true); expect(result.records).toHaveLength(1); expect(result.records[0].image).toBeUndefined();
+  expect(result.containsMockRecords).toBe(false); expect(result.records[0].isMock).toBe(false); expect(result.records[0].modelVersion).toBeTruthy(); expect(result.records).toHaveLength(1); expect(result.records[0].image).toBeUndefined();
   expect(result.records[0].note).toContain('换个角度');
   await page.getByRole('button', { name: '移除体验图片', exact: true }).click();
   await expect(demo).toBeDisabled();
@@ -85,7 +85,7 @@ test('mobile catalogue and experience layout', async ({ page }) => {
   await page.getByRole('button', { name: '打开图像分类体验', exact: true }).click();
   await page.getByText('文件',{exact:true}).click();
   await page.getByRole('button', { name: '使用示例插画', exact: true }).click();
-  await page.getByRole('button', { name: '查看演示结果', exact: true }).click();
+  await page.getByRole('button', { name: '开始识别', exact: true }).click();
   await expect(page.locator('.experience-record')).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: 'qa/image-experience-mobile.png', fullPage: true, animations: 'disabled' });

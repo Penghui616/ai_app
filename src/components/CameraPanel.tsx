@@ -5,7 +5,8 @@ import { CameraOutlined, PauseCircleOutlined, VideoCameraOutlined } from '@ant-d
 interface Props {
   disabled?: boolean;
   inferenceEnabled?: boolean;
-  onFrame?: (dataUrl: string, isCurrent: () => boolean) => Promise<void>;
+  onFrame?: (dataUrl: string, isCurrent: () => boolean, signal: AbortSignal) => Promise<void>;
+  mode?: 'demo'|'real';
   onCapture?: (file: File) => Promise<void>;
   captureLabel?: string;
   continuous?: boolean;
@@ -20,7 +21,7 @@ const explainError = (error: unknown) => {
 };
 
 export default function CameraPanel({ disabled = false, inferenceEnabled = true, onFrame, onCapture,
-  captureLabel = '拍摄一张', continuous = false }: Props) {
+  captureLabel = '拍摄一张', continuous = false, mode = 'demo' }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const generation = useRef(0);
@@ -124,6 +125,7 @@ export default function CameraPanel({ disabled = false, inferenceEnabled = true,
   useEffect(() => {
     if (!active || !live || !inferenceEnabled || !onFrame) return;
     let cancelled = false;
+    const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     const token = generation.current;
     const isCurrent = () => !cancelled && mounted.current && token === generation.current;
@@ -131,14 +133,14 @@ export default function CameraPanel({ disabled = false, inferenceEnabled = true,
       try {
         const canvas = canvasFrame();
         if (canvas && isCurrent()) {
-          await handlers.current.onFrame?.(canvas.toDataURL('image/jpeg', .8), isCurrent);
+          await handlers.current.onFrame?.(canvas.toDataURL('image/jpeg', .8), isCurrent, controller.signal);
           if (isCurrent()) setFrames(count => count + 1);
         }
       } catch (reason) { if (isCurrent()) { setError(explainError(reason)); setLive(false); } }
       if (isCurrent()) timer = setTimeout(() => void tick(), 500);
     };
     void tick();
-    return () => { cancelled = true; clearTimeout(timer); };
+    return () => { cancelled = true; controller.abort(); clearTimeout(timer); };
   }, [active, live, inferenceEnabled, !!onFrame]);
   useEffect(() => {
     if (!active || !collecting || disabled) return;
@@ -162,7 +164,7 @@ export default function CameraPanel({ disabled = false, inferenceEnabled = true,
       {onCapture && <Button type="primary" icon={<CameraOutlined aria-hidden="true"/>} disabled={!active || disabled || collecting} loading={capturing && !collecting} onClick={() => void capture()}>{captureLabel}</Button>}
       {continuous && <Button type={collecting ? 'primary' : 'default'} danger={collecting} disabled={!active || disabled} onClick={() => setCollecting(value => !value)}>{collecting ? '停止采集' : '连续采集'}</Button>}
     </div>
-    {onFrame && <div className="camera-live-row"><label><Switch aria-label="实时演示" checked={live && active && inferenceEnabled} disabled={!active || !inferenceEnabled} onChange={value => { setError(''); setLive(value); }}/><span>{!inferenceEnabled ? '完成演示训练后可实时校验' : live && active ? '实时演示中' : '实时演示已暂停'}</span></label><small aria-live="off">已处理 {frames} 帧</small></div>}
-    <p className="camera-privacy">{continuous ? '连续采集约每 0.7 秒一张，相同画面会去重。' : '画面仅在本机处理；关闭摄像头后停止取帧。'}{onFrame ? ' 当前输出为模拟分数。' : ' 拍摄样本保存在当前浏览器。'}</p>
+    {onFrame && <div className="camera-live-row"><label><Switch aria-label={mode==='real'?'实时识别':'实时演示'} checked={live && active && inferenceEnabled} disabled={!active || !inferenceEnabled} onChange={value => { setError(''); setLive(value); }}/><span>{!inferenceEnabled ? (mode==='real'?'等待识别服务就绪':'完成演示训练后可实时校验') : live && active ? (mode==='real'?'实时识别中':'实时演示中') : (mode==='real'?'实时识别已暂停':'实时演示已暂停')}</span></label><small aria-live="off">已处理 {frames} 帧</small></div>}
+    <p className="camera-privacy">{mode==='real'?'开启实时识别后，画面会发送到本应用后端推理，不自动保存。':<>{continuous ? '连续采集约每 0.7 秒一张，相同画面会去重。' : '画面仅在本机处理；关闭摄像头后停止取帧。'}{onFrame ? ' 当前输出为模拟分数。' : ' 拍摄样本保存在当前浏览器。'}</>}</p>
   </div>;
 }

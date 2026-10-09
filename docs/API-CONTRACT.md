@@ -1,6 +1,26 @@
-# FastAPI 对接约定草案
+# FastAPI 接口与后续对接约定
 
-当前全部调用集中在 src/services/contracts.ts 与 api.ts。UI 不直接访问 IndexedDB，也不自己生成模拟训练指标。
+分类实验的模拟调用集中在 src/services/contracts.ts 与 api.ts；体验页通过 src/services/experience.ts 调用以下真实接口。
+
+## 已实现：图像分类体验（v0.5）
+
+| 操作 | 接口 |
+| --- | --- |
+| 健康与模型状态 | GET /api/health |
+| 可用模型与 36 个类别 | GET /api/v1/experience/models |
+| 真实分类 | POST /api/v1/experience/models/fruit-veg-36/predict |
+
+预测请求体是图片二进制，Content-Type 为 image/jpeg、image/png 或 image/webp，不是 multipart 或 JSON。限制 5 MB、2000 万像素和静态图片，校验实际格式并处理 EXIF 方向。
+
+响应示例（数值仅用于说明结构）：
+```json
+{"modelId":"fruit-veg-36","modelVersion":"a84824cd6c10eed4defb83d373b4377c85c1cf73","isMock":false,"scores":[{"id":0,"name":"apple","label":"苹果","score":0.95}],"latencyMs":130.0,"uncertain":false,"notice":"仅支持预设的36类果蔬。非果蔬或多物体画面也可能被误分；分数不等于准确率。"}
+```
+实际 scores 返回前五名，取值 0–1。uncertain 仅表示最高分低于 0.6，不等于可靠的未知类别检测。响应禁止缓存；后端不保存图片和预测记录。
+
+错误：404 模型不存在；413 超限；415 格式不支持或与内容不符；422 损坏或空图片；429 模型忙（Retry-After: 1）；503 模型未就绪。FastAPI 错误信息在 detail 字段。
+
+前端 /api 在 Vite 开发环境代理到 127.0.0.1:8000。体验记录仍在 IndexedDB；历史模拟记录保留 isMock=true，真实记录包含模型版本且 isMock=false。当前没有账号、数据库或云端部署。
 
 ## 建议资源与路径
 
@@ -40,7 +60,7 @@
 - create_classification_project：创建并打开本地演示项目。
 缺少该浏览器 API 时自动跳过，不影响普通 UI。
 
-## 摄像头接入边界（v0.4 前端）
+## 摄像头接入边界（历史 v0.4；体验页已在 v0.5 改为真实 HTTP 推理）
 - CameraPanel 在明确点击开启后获取仅含 video 的 MediaStream。采样通过 canvas 生成 JPEG File，复用 addImages；实时校验读取压缩 JPEG data URL 并复用 predict，目前仍走本机模拟接口。
 - 一次只提交一个实时预测，完成后等待 500ms 再取下一帧；暂停、切换或离开时停止取帧并丢弃过期响应。后续 HTTP 实现还应传递 AbortSignal，限制图像尺寸、请求频率和超时。
 - 服务端需绑定实际模型版本和类别顺序，校验样本版本。体验应用使用预训练模型，不依赖学生训练项目；训练应用须有当前项目的有效模型。

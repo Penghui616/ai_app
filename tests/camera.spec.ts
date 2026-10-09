@@ -21,13 +21,15 @@ test('experience camera streams, pauses, freezes a record and releases on source
  expect(await alive(page)).toBe(0);
  await page.getByRole('button',{name:'开启摄像头',exact:true}).click();
  await expect(page.locator('.camera-preview')).toHaveClass(/is-active/);
- await expect(page.locator('.experience-top-result')).toContainText('苹果');
+ await expect(page.locator('.experience-top-result')).toBeVisible();
+ await expect(page.locator('.experience-score-list .score-row')).toHaveCount(5);
+ await expect(page.getByText('真实模型结果',{exact:true})).toBeVisible();
  await expect.poll(()=>alive(page)).toBe(1);
- await page.getByRole('switch',{name:'实时演示',exact:true}).click();
+ await page.getByRole('switch',{name:'实时识别',exact:true}).click();
  const count = await page.locator('.camera-live-row small').textContent();
  await page.waitForTimeout(850);
  expect(await page.locator('.camera-live-row small').textContent()).toBe(count);
- await page.getByRole('switch',{name:'实时演示',exact:true}).click();
+ await page.getByRole('switch',{name:'实时识别',exact:true}).click();
  await expect(page.locator('.camera-live-row small')).not.toHaveText(count!);
  await mkdir('qa',{recursive:true});
  await page.screenshot({path:'qa/live-experience.png',fullPage:true});
@@ -95,7 +97,7 @@ test('permission errors allow file fallback, late permission resolution releases
  await expect(page.getByText(/摄像头权限未开启/)).toBeVisible();
  await page.getByText('文件',{exact:true}).click();
  await page.getByRole('button',{name:'使用示例插画',exact:true}).click();
- await page.getByRole('button',{name:'查看演示结果',exact:true}).click();
+ await page.getByRole('button',{name:'开始识别',exact:true}).click();
  await expect(page.locator('.experience-record')).toHaveCount(1);
  await page.reload();
  await page.evaluate(() => {

@@ -123,3 +123,5 @@
 @media(max-width:700px){.camera-workbench{display:flex;flex-direction:column}.sample-collection{flex-direction:row}.sample-collection.camera-open{display:flex;flex-direction:column}.camera-open .sample-source{width:100%}.sample-source-button.ant-btn{width:69px;height:70px;font-size:11px}.sample-source-actions{gap:7px}.sample-gallery-empty{padding:7px;font-size:10px}.sample-gallery-empty>.anticon{display:none}.camera-workbench .section-heading{gap:7px}.camera-workbench .section-heading>span:last-child:not(.step-number){font-size:11px}.experience-input-card .camera-device-row .ant-select{max-width:100%}.camera-placeholder{padding:12px}.camera-live-row{gap:10px}}
 
 .camera-preview{width:100%}
+
+.model-supported{margin-top:10px;font-size:12px;color:#6d86a5}.model-supported summary{cursor:pointer}.model-supported>div{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.model-supported .ant-tag{margin:0}.prediction-uncertain{margin-top:14px;font-size:12px}.prediction-uncertain .ant-alert-message{font-size:12px}
