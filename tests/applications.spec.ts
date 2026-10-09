@@ -21,11 +21,6 @@ test('application navigation, history routing and separate assistant roles', asy
   await page.getByRole('button', { name: '去图像体验', exact: true }).click();
   await expect(page).toHaveURL(/#\/experience$/);
   await expect(page.getByRole('heading', { name: '把物体放到镜头前，观察分类结果' })).toBeVisible();
-  await page.getByRole('button', { name: '图像体验助手 演示', exact: true }).click();
-  await expect(page.locator('.assistant-message')).toHaveCount(0);
-  await page.getByRole('button', { name: '分数代表什么', exact: true }).click();
-  await expect(page.locator('.assistant-bubble').last()).toContainText('真实推理分数');
-  await page.getByRole('button', { name: '关闭', exact: true }).click();
   await page.getByRole('button', { name: '返回应用选择', exact: true }).click();
   await page.getByRole('button', { name: '应用导航助手 演示', exact: true }).click();
   await expect(page.locator('.assistant-message')).toHaveCount(2);

@@ -105,3 +105,7 @@ Sites 私有预览仅托管静态前端，不代替未来公司的 FastAPI/MySQL
 - `backend/`：下载、校验、加载模型与 FastAPI 推理服务；`src/services/experience.ts`：体验 API 与本地记录。
 - 启动与验证见 [backend/README.md](backend/README.md)，已实现接口见 [docs/API-CONTRACT.md](docs/API-CONTRACT.md)。
 - 稳定标签：`v0.5-fruit-inference-backend`；上版回退点：`v0.4-camera-classification`。切换前应先保存修改，浏览器记录不会随 Git 自动回退。
+
+## 体验页简化（v0.5.1）
+- 移除图像分类体验页的助手入口与面板，保留操作说明、识别结果提示和观察记录。应用导航助手与分类实验助手继续保留。
+- 版本标签：`v0.5.1-experience-without-assistant`；上个版本：`v0.5-fruit-inference-backend`。

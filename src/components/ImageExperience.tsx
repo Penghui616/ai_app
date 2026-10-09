@@ -5,7 +5,6 @@ import type { ImageSample } from '../types';
 import { prepareImage } from '../services/images';
 import { classifyImage, getExperienceModel, exampleImage, loadExperiences, saveExperiences } from '../services/experience';
 import type { ExperienceModel, ExperienceRecord } from '../services/experience';
-import ContextAssistant from './ContextAssistant';
 import CameraPanel from './CameraPanel';
 interface Props { onHome: () => void; onTraining: () => void }
 export default function ImageExperience({ onHome, onTraining }: Props) {
@@ -123,6 +122,5 @@ export default function ImageExperience({ onHome, onTraining }: Props) {
       {!records.length ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="完成一次图片识别或定格后，记录会出现在这里。" /> : <div className="experience-record-grid">{records.map(record => <article key={record.id} className="experience-record"><button className="experience-record-open" onClick={() => openRecord(record)} disabled={saving}><img src={record.image.dataUrl} alt=""/><div><b>{record.image.name}</b><span>{new Date(record.createdAt).toLocaleString('zh-CN')}</span><small>{record.isMock?'历史演示':'真实模型'} · {record.scores[0].label} {(record.scores[0].score*100).toFixed(1)}%</small><p>{record.note || '还没有填写观察'}</p></div></button><Button type="text" size="small" aria-label={'删除体验记录 '+record.id} disabled={saving} icon={<DeleteOutlined aria-hidden="true" />} onClick={() => remove(record)}/></article>)}</div>}
     </section>
     <div className="experience-next"><div><b>想让模型学习你自己的类别？</b><p>进入图像分类训练，尝试准备数据和配置训练流程。</p></div><Button onClick={onTraining}>去分类训练 <ArrowRightOutlined aria-hidden="true" /></Button></div>
-    <ContextAssistant mode="experience" context={`果蔬分类36类；后端状态：${modelReady?'已就绪':'未就绪'}；输入来源：${source==='camera'?'摄像头':'文件'}；${selected ? '当前图片：'+selected.name : '尚未选择图片'}；${displayed ? (displayed.isMock?'正在查看旧版模拟记录':'已显示真实模型预测，分数不代表准确率') : '尚未显示结果'}；本机有 ${records.length} 条体验记录。不读取分类训练项目。`} onExperience={() => {}} onTraining={onTraining}/>
   </div>;
 }
