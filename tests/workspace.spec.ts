@@ -44,6 +44,7 @@ test('project CRUD, upload validation, persistence, training, prediction, invali
  await expect(page.getByRole('img',{name:'模拟损失曲线',exact:true})).toBeVisible();
  await page.screenshot({path:'qa/training-monitor.png',fullPage:true});
  await page.getByRole('button',{name:'完成，去测试',exact:true}).click();
+ await page.getByText('文件',{exact:true}).click();
  await page.getByTestId('test-upload').locator('input[type=file]').setInputFiles(image('测试图片.png',[72,136,90]));
  await expect(page.getByRole('button',{name:'开始演示预测',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'开始演示预测',exact:true}).click();
@@ -101,6 +102,7 @@ test('mock run is recovered as cancelled after a page reload',async({page})=>{
  await page.reload();
  await expect(page.getByText('上次演示在页面关闭时停止，已保留运行记录。可以重新开始。',{exact:true})).toBeVisible();
  await expect(page.getByText('上次演示已取消',{exact:true})).toBeVisible();
+ await page.getByText('文件',{exact:true}).click();
  await expect(page.getByRole('button',{name:'选择测试图片',exact:true})).toBeDisabled();
 });
 test('optional WebMCP adapter shares state and rejects invalid input',async({page})=>{

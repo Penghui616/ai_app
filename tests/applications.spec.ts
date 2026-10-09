@@ -20,7 +20,7 @@ test('application navigation, history routing and separate assistant roles', asy
   await expect(page.locator('.assistant-bubble').last()).toContainText('允许你自定义类别');
   await page.getByRole('button', { name: '去图像体验', exact: true }).click();
   await expect(page).toHaveURL(/#\/experience$/);
-  await expect(page.getByRole('heading', { name: '给 AI 一张图片，看看它的判断' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '把物体放到镜头前，观察分类结果' })).toBeVisible();
   await page.getByRole('button', { name: '图像体验助手 演示', exact: true }).click();
   await expect(page.locator('.assistant-message')).toHaveCount(0);
   await page.getByRole('button', { name: '分数代表什么', exact: true }).click();
@@ -44,6 +44,7 @@ test('application navigation, history routing and separate assistant roles', asy
 
 test('experience demo validation, local records, notes, reload, export and deletion', async ({ page }) => {
   await page.goto('/#/experience');
+  await page.getByText('文件',{exact:true}).click();
   const demo = page.getByRole('button', { name: '查看演示结果', exact: true });
   await expect(demo).toBeDisabled();
   await page.getByTestId('experience-upload').locator('input[type=file]').setInputFiles({ name: 'bad.txt', mimeType: 'text/plain', buffer: Buffer.from('not an image') });
@@ -82,6 +83,7 @@ test('mobile catalogue and experience layout', async ({ page }) => {
   await page.screenshot({ path: 'qa/application-hub-mobile.png', fullPage: true, animations: 'disabled' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: '打开图像分类体验', exact: true }).click();
+  await page.getByText('文件',{exact:true}).click();
   await page.getByRole('button', { name: '使用示例插画', exact: true }).click();
   await page.getByRole('button', { name: '查看演示结果', exact: true }).click();
   await expect(page.locator('.experience-record')).toHaveCount(1);
