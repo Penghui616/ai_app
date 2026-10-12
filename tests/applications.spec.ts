@@ -4,6 +4,8 @@ test.use({ actionTimeout: 10000, reducedMotion: 'reduce' });
 
 test('application navigation, history routing and separate assistant roles', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const backendReady = await page.request.get('/api/v1/projects');
+  expect(backendReady.ok()).toBe(true);
   await page.goto('/');
   await expect(page.getByRole('heading', { name: '应用选择', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: /^应用体验/ })).toBeVisible();
@@ -26,7 +28,7 @@ test('application navigation, history routing and separate assistant roles', asy
   await expect(page.locator('.assistant-message')).toHaveCount(2);
   await page.getByRole('button', { name: '关闭', exact: true }).click();
   await page.getByRole('button', { name: '打开图像分类实验', exact: true }).click();
-  await expect(page.getByTestId('class-card')).toHaveCount(2);
+  await expect(page.getByTestId('class-card')).toHaveCount(2, { timeout: 35000 });
   const category = page.getByRole('textbox', { name: '类别 1 名称', exact: true });
   await category.fill('保留原工作台'); await category.press('Enter');
   await page.getByRole('button', { name: '返回应用选择', exact: true }).click();

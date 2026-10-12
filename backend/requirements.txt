@@ -1,4 +1,4 @@
-# Install CPU torch separately; see backend/README.md.
+# Install CPU torch==2.7.1 and torchvision==0.22.1 separately; see backend/README.md.
 fastapi==0.115.12
 uvicorn==0.34.2
 transformers==4.51.3
@@ -7,3 +7,8 @@ huggingface-hub==0.30.2
 safetensors==0.5.3
 httpx==0.28.1
 pytest==8.3.5
+
+SQLAlchemy==2.0.43
+PyMySQL==1.1.2
+python-dotenv==1.1.1
+cryptography>=44

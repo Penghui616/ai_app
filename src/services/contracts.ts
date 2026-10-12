@@ -16,7 +16,7 @@ export interface ClassificationApi {
   updateParams(projectId: string, values: Partial<TrainingParams>): Promise<void>;
   startTraining(projectId: string): Promise<TrainingRun>;
   cancelTraining(projectId: string): Promise<void>;
-  predict(projectId: string, dataUrl: string): Promise<Prediction>;
+  predict(projectId: string, dataUrl: string, signal?: AbortSignal, record?: boolean): Promise<Prediction>;
   exportRecord(projectId: string): string;
   dismissNotice(): void;
 }

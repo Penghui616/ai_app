@@ -6,6 +6,11 @@ from backend.app import create_app, MAX_BYTES, decode_image
 from backend.inference import FruitClassifier, ModelBusy, ModelUnavailable
 from backend.model_spec import LABELS_ZH, MODEL_ID, REVISION
 
+def isolated_app(classifier):
+    from backend.training import TrainingService
+    from backend.training_store import Store
+    return create_app(classifier,TrainingService(Store(False)))
+
 class StubClassifier:
     status="ready"
     def load(self): pass
@@ -17,7 +22,7 @@ def png(color="red",size=(40,30)):
 
 @pytest.fixture
 def client():
-    with TestClient(create_app(StubClassifier())) as client: yield client
+    with TestClient(isolated_app(StubClassifier())) as client: yield client
 
 def test_health_and_model_listing(client):
     assert client.get("/api/health").json()["modelStatus"]=="ready"
@@ -40,7 +45,7 @@ def test_unknown_model(client):
 def test_service_failures(exception,code):
     class Failed(StubClassifier):
         def predict(self,image): raise exception()
-    with TestClient(create_app(Failed())) as client:
+    with TestClient(isolated_app(Failed())) as client:
         result=client.post(f"/api/v1/experience/models/{MODEL_ID}/predict",content=png(),headers={"content-type":"image/png"})
         assert result.status_code==code
         if code==429: assert result.headers["retry-after"]=="1"
@@ -51,7 +56,7 @@ def test_exif_orientation():
     assert decode_image(output.getvalue(),"image/jpeg").size==(40,20)
 
 def test_pixel_limit(monkeypatch,client):
-    monkeypatch.setattr("backend.app.MAX_PIXELS",100)
+    monkeypatch.setattr("backend.image_io.MAX_PIXELS",100)
     assert client.post(f"/api/v1/experience/models/{MODEL_ID}/predict",content=png(),headers={"content-type":"image/png"}).status_code==413
 
 def test_real_model_inference_and_concurrency_gate():

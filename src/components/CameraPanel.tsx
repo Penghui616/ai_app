@@ -165,6 +165,6 @@ export default function CameraPanel({ disabled = false, inferenceEnabled = true,
       {continuous && <Button type={collecting ? 'primary' : 'default'} danger={collecting} disabled={!active || disabled} onClick={() => setCollecting(value => !value)}>{collecting ? '停止采集' : '连续采集'}</Button>}
     </div>
     {onFrame && <div className="camera-live-row"><label><Switch aria-label={mode==='real'?'实时识别':'实时演示'} checked={live && active && inferenceEnabled} disabled={!active || !inferenceEnabled} onChange={value => { setError(''); setLive(value); }}/><span>{!inferenceEnabled ? (mode==='real'?'等待识别服务就绪':'完成演示训练后可实时校验') : live && active ? (mode==='real'?'实时识别中':'实时演示中') : (mode==='real'?'实时识别已暂停':'实时演示已暂停')}</span></label><small aria-live="off">已处理 {frames} 帧</small></div>}
-    <p className="camera-privacy">{mode==='real'?'开启实时识别后，画面会发送到本应用后端推理，不自动保存。':<>{continuous ? '连续采集约每 0.7 秒一张，相同画面会去重。' : '画面仅在本机处理；关闭摄像头后停止取帧。'}{onFrame ? ' 当前输出为模拟分数。' : ' 拍摄样本保存在当前浏览器。'}</>}</p>
+    <p className="camera-privacy">{mode==='real'?(onFrame?'开启实时识别后，画面会发送到本应用后端推理，不自动保存。':'点击拍摄或连续采集后，样本会上传并保存在后端；关闭摄像头后停止采集。'):<>{continuous ? '连续采集约每 0.7 秒一张，相同画面会去重。' : '画面仅在本机处理；关闭摄像头后停止取帧。'}{onFrame ? ' 当前输出为模拟分数。' : ' 拍摄样本保存在当前浏览器。'}</>}</p>
   </div>;
 }

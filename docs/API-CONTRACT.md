@@ -66,3 +66,15 @@
 - 服务端需绑定实际模型版本和类别顺序，校验样本版本。体验应用使用预训练模型，不依赖学生训练项目；训练应用须有当前项目的有效模型。
 - 视频帧不会自动写入实验记录或数据集。样本仅在拍摄/连续采集时保存；体验页仅在定格并记录时保存一张快照。
 - 当前不提供模型导出、硬件部署或外部实时结果推送，不能将 JSON 演示记录当成模型文件。
+
+## 已实现 分类实验 v0.6
+- GET /api/v1/training/status：数据库与权重状态。
+- GET / POST /api/v1/projects；GET / PATCH / DELETE /api/v1/projects/{id}。
+- POST /api/v1/projects/{id}/classes；PATCH / DELETE /api/v1/projects/{id}/classes/{classId}。
+- POST /api/v1/projects/{id}/classes/{classId}/samples?name=文件名：JPEG/PNG/WebP 二进制，5 MB 上限，返回 added 与 project。
+- DELETE /api/v1/projects/{id}/classes/{classId}/samples/{sampleId}；GET /api/v1/projects/{id}/samples/{sampleId}/image。
+- PUT /api/v1/projects/{id}/params：完整参数，224 尺寸，epochs 1–100，batchSize 4/8/16/32/64，optimizer AdamW/SGD，learningRate 0.00001–1。
+- POST /api/v1/projects/{id}/training-runs：202 返回后台任务；GET 项目轮询 stage、featureProgress、metrics 和状态。
+- POST /api/v1/projects/{id}/training-runs/cancel：只表示请求取消，需继续查询最终状态。
+- POST /api/v1/projects/{id}/predictions?record=true：原始图片，使用当前版本最近完成模型；文件预测保存最近 50 条，实时帧用 record=false。
+真实训练包含 isMock=false、backbone、seed、trainSampleIds、validationSampleIds 和 metrics。模型版本为 runId。服务端使用 HttpOnly 工作区 cookie 检查归属。409 为冲突，503 为数据库或模型未就绪。无排队或模型导出接口，旧版建议路径中未列为实现的接口仍为设计。

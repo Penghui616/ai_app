@@ -1,41 +1,28 @@
 from contextlib import asynccontextmanager
-from io import BytesIO
-import warnings
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from PIL import Image, ImageOps, UnidentifiedImageError
 from starlette.concurrency import run_in_threadpool
 from backend.inference import FruitClassifier, ModelBusy, ModelUnavailable
 from backend.model_spec import MODEL_ID
 
-MAX_BYTES=5*1024*1024
-MAX_PIXELS=20_000_000
-Image.MAX_IMAGE_PIXELS=MAX_PIXELS
-TYPES={"image/jpeg":"JPEG","image/png":"PNG","image/webp":"WEBP"}
+from backend.image_io import MAX_BYTES, MAX_PIXELS, TYPES, decode_image
 
-def decode_image(data:bytes,media_type:str):
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("error",Image.DecompressionBombWarning)
-            with Image.open(BytesIO(data)) as source:
-                if source.format!=TYPES[media_type]: raise HTTPException(415,"图片内容与文件格式不一致。")
-                if source.width*source.height>MAX_PIXELS: raise HTTPException(413,"图片尺寸过大，请缩小后重试。")
-                if getattr(source,"n_frames",1)>1: raise HTTPException(415,"请上传静态图片。")
-                source.load()
-                image=ImageOps.exif_transpose(source).convert("RGB")
-        return image
-    except HTTPException: raise
-    except (Image.DecompressionBombError,Image.DecompressionBombWarning): raise HTTPException(413,"图片尺寸过大，请缩小后重试。")
-    except (UnidentifiedImageError,OSError,ValueError): raise HTTPException(422,"图片损坏或无法读取，请更换图片。")
-
-def create_app(classifier=None):
+def create_app(classifier=None, training_service=None):
+    from backend.training import TrainingService, install_training
+    training = training_service or TrainingService()
     engine=classifier if classifier is not None else FruitClassifier()
     @asynccontextmanager
     async def lifespan(app):
         await run_in_threadpool(engine.load)
-        yield
-    app=FastAPI(title="AI实验室 · 图像分类体验",version="0.5.0",lifespan=lifespan)
+        await run_in_threadpool(training.initialize)
+        try:
+            yield
+        finally:
+            await run_in_threadpool(training.close)
+    app=FastAPI(title="AI实验室 · 图像分类体验",version="0.6.0",lifespan=lifespan)
     app.state.classifier=engine
+    app.state.training=training
+    install_training(app,training)
 
     @app.get("/api/health")
     async def health(): return {"status":"ok","modelStatus":engine.status}

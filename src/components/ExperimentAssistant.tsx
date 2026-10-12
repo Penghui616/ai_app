@@ -56,7 +56,7 @@ export default function ExperimentAssistant({ project, prediction, entry, onClos
       <div className="assistant-context-top"><span><ExperimentOutlined aria-hidden="true" /> 当前实验</span><Tag bordered={false} color="blue">{context.stage}</Tag></div>
       <strong title={project.name}>{project.name}</strong>
       <div className="assistant-stat-row"><span>{context.classes.length} 个类别</span><span>{total} 张图片</span><span>数据版本 {project.revision}</span></div>
-      <p>状态由程序统计；训练与预测仍为模拟。</p>
+      <p>状态由程序统计；助手仍为预设回复，未调用大模型。</p>
     </div>}
     welcomeTitle="从一个好问题开始" welcomeText="一起观察数据、提出猜想，再用实验验证。你想先了解哪一部分？" capabilities={['理解概念','寻找依据','设计验证']}
     prompts={prompts.map(item => ({ label: item.label, onClick: () => send(item.question, item.topic) }))}
@@ -71,8 +71,8 @@ export default function ExperimentAssistant({ project, prediction, entry, onClos
           <p>{message.context.projectName} · 数据版本 {message.context.revision}</p>
           <p>读取于 {new Date(message.context.capturedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}，这是回答时的快照。</p>
           <ul>{message.context.classes.map((item, index) => <li key={index}>{item.name}：{item.count} 张</li>)}</ul>
-          <p>{message.context.run ? '训练记录：模拟记录，未用于判断真实效果。' : '训练记录：暂无。'}</p>
-          <p>{message.context.hasPrediction ? '当前测试：模拟预测，不用于效果分析。' : '当前测试：暂无可用预测。'}</p>
+          <p>{message.context.run ? '训练记录：已读取状态，尚未分析指标。' : '训练记录：暂无。'}</p>
+          <p>{message.context.hasPrediction ? '当前测试：已有预测，助手未读取图片或诊断结果。' : '当前测试：暂无可用预测。'}</p>
           <p>未读取图片内容；没有执行任何修改操作。</p>
         </details>}
       </div>)}

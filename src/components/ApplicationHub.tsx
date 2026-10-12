@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowRightOutlined, AudioOutlined, CameraOutlined, ExperimentOutlined, MessageOutlined, TranslationOutlined } from '@ant-design/icons';
+import { isRealTraining } from '../services/api';
 import ContextAssistant from './ContextAssistant';
 interface Props { onExperience: () => void; onTraining: () => void }
 interface TileProps { name: string; description: string; code: string; icon: ReactNode; onOpen?: () => void }
@@ -8,7 +9,7 @@ function ApplicationTile({ name, description, code, icon, onOpen }: TileProps) {
   return <button className={'catalog-tile' + (!onOpen ? ' unavailable' : '')} disabled={!onOpen} onClick={onOpen} aria-label={onOpen ? '打开' + name : name + '，开发中'}>
     <span className="catalog-tile-title">{name}{onOpen && <ArrowRightOutlined aria-hidden="true" />}</span>
     <span className="catalog-tile-description">{description}</span>
-    <span className="catalog-tile-status">{onOpen ? (name==='图像分类体验'?'真实模型 · 36 类果蔬':'前端演示') : '开发中'}</span>
+    <span className="catalog-tile-status">{onOpen ? (name==='图像分类体验'?'真实模型 · 36 类果蔬':isRealTraining?'真实训练 · 需配置后端':'前端演示') : '开发中'}</span>
     <span className="catalog-tile-code" aria-hidden="true">{code}</span>
     <span className="catalog-tile-icon" aria-hidden="true">{icon}</span>
   </button>;
@@ -37,7 +38,7 @@ export default function ApplicationHub({ onExperience, onTraining }: Props) {
         <ApplicationTile name="语音交互实验" description="配置语音指令，探索交互过程" code="B2" icon={<MessageOutlined />}/>
         <ApplicationTile name="翻译应用实验" description="构建翻译应用，比较与分析结果" code="B3" icon={<TranslationOutlined />}/>
       </div></section>
-      <p className="catalog-demo-note">图像分类体验已接入果蔬模型，需后端服务运行。分类实验仍为模拟训练，助手使用预设回复。</p>
+      <p className="catalog-demo-note">图像分类体验已接入果蔬模型，需后端服务运行。分类实验需配置数据库与训练模型；助手仍使用预设回复。</p>
     </div>
     <ContextAssistant mode="navigation" context="应用分为应用体验和应用实验。当前可进入图像分类体验与图像分类实验；语音和翻译尚未开放。这里只读取应用介绍，不读取训练项目。" onExperience={onExperience} onTraining={onTraining}/>
   </div>;
