@@ -1,7 +1,7 @@
 """Read-only teaching tools. Every result is scoped to a verified project snapshot."""
 import json
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from backend.training_store import now
 
 
@@ -18,12 +18,20 @@ class GuideArgs(Args):
 
 
 class ListArgs(Args):
-    limit: int = Field(default=5, ge=1, le=10)
+    limit: int = Field(default=5, ge=1, le=20)
+    offset: int = Field(default=0, ge=0)
 
 
 class RunArgs(Args):
-    run_id: str = Field(min_length=1, max_length=36)
+    run_id: str | None = Field(default=None, min_length=1, max_length=36)
+    run_number: int | None = Field(default=None, ge=1)
     include_curve: bool = False
+
+    @model_validator(mode="after")
+    def one_reference(self):
+        if (self.run_id is None) == (self.run_number is None):
+            raise ValueError("提供 run_number 或 run_id 中的一项。")
+        return self
 
 
 class CompareArgs(Args):
@@ -50,6 +58,28 @@ def find_run(p, run_id):
     if run is None:
         raise ValueError("当前项目没有这条训练记录，请先列出训练记录。")
     return run
+
+
+def numbered_runs(p):
+    # Matches the frontend: reverse-chronological list, oldest is experiment 1.
+    return [(len(p["runs"])-i, r) for i, r in enumerate(p["runs"])]
+
+
+def find_run_number(p, number):
+    if number < 1 or number > len(p["runs"]):
+        raise ValueError(f"当前项目共有 {len(p['runs'])} 次训练，没有第 {number} 次。")
+    return p["runs"][len(p["runs"])-number]
+
+
+def training_index(p, limit=12, offset=0, include_numbers=()):
+    numbered = numbered_runs(p)
+    rows = numbered[offset:offset+limit]
+    ids = {r["id"] for _, r in rows}
+    rows += [(n, r) for n, r in numbered if n in include_numbers and r["id"] not in ids]
+    return dict(total=len(numbered), offset=offset, nextOffset=offset+limit if offset+limit < len(numbered) else None,
+                numbering="第N次按创建时间从早到晚编号，包含失败和取消的训练，与页面一致；列表倒序不改变编号。",
+                runs=[dict(runNumber=n, id=r["id"], status=r["status"], startedAt=r.get("startedAt"),
+                           params=r.get("params", {}), revision=r.get("revision")) for n, r in rows])
 
 
 def run_summary(r):
@@ -115,8 +145,8 @@ def compare_runs(p, a, b):
 SPECS = {
     "get_experiment_state": (EmptyArgs, "获取当前项目的样本数量、训练和测试状态以及程序确定的下一步。"),
     "get_operation_guide": (GuideArgs, "查询页面真实操作步骤；不要自行编造按钮或未实现功能。"),
-    "list_training_runs": (ListArgs, "按时间从新到旧列出本项目训练摘要，用于确认训练编号。"),
-    "get_training_details": (RunArgs, "获取指定训练摘要；仅在需要分析曲线时设置 include_curve=true。"),
+    "list_training_runs": (ListArgs, "列出轻量训练索引，runNumber与页面第N次一致；倒序列表不影响编号。可用offset翻页。"),
+    "get_training_details": (RunArgs, "按run_number（页面第N次）或run_id读取训练详情。分析曲线必须设置include_curve=true，无需学生提供ID。"),
     "compare_training_runs": (CompareArgs, "比较当前项目的两次训练，检查数据和划分是否一致并计算指标差异。"),
     "get_test_records": (TestArgs, "读取最近文件测试的类别分数，默认筛选当前有效模型；不含图片或真实标签，不能计算测试准确率。"),
 }
@@ -132,10 +162,11 @@ def execute_tool(name, arguments, p, client):
     if name == "get_operation_guide":
         return dict(step=arg.step, instructions=GUIDES[arg.step])
     if name == "list_training_runs":
-        return dict(runs=[run_summary(r) for r in p["runs"][:arg.limit]], total=len(p["runs"]))
+        return training_index(p, arg.limit, arg.offset)
     if name == "get_training_details":
-        r = find_run(p, arg.run_id)
+        r = find_run_number(p, arg.run_number) if arg.run_number is not None else find_run(p, arg.run_id)
         result = run_summary(r)
+        result["runNumber"] = next(n for n, item in numbered_runs(p) if item["id"] == r["id"])
         if arg.include_curve:
             result["curve"] = r.get("metrics", [])[:100]
         result["confusionMatrix"] = r.get("confusionMatrix")

@@ -61,3 +61,11 @@ pnpm.cmd test
 - https://help.aliyun.com/zh/model-studio/qwen3-8-max
 - https://help.aliyun.com/zh/model-studio/qwen-function-calling
 - https://help.aliyun.com/zh/model-studio/first-api-call-to-qwen
+
+## v0.7.1 实验编号与曲线读取修复
+
+- 页面与助手统一：第 1 次是最早的训练，失败和取消也占编号；新到旧的列表不会改变编号。项目当前没有单条训练删除功能。
+- 每次提供最近 12 条轻量索引（编号、ID、状态、参数），并补入问题明确提到的更早编号；列表工具支持 offset 翻页，不默认返回曲线和指标。
+- “分析第五次实验的曲线”“第5次”（承接上一条曲线问题）由程序预先读取对应曲线，再交给模型解释，避免模型直接拒绝查询。
+- 详情工具同时支持 run_number 或 run_id。复杂或有歧义的自由语言仍由模型结合索引调用工具，不保证所有表达都命中程序规则。
+- 修复验证使用隔离测试库和模型替身。更新后需重启后端；不会自动重启运行中的训练或修改公司数据库。

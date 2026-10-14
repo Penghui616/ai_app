@@ -96,3 +96,6 @@
 reply 含 text、mode、evidence（工具数据快照及版本）、usage、contextChanged。普通 JSON 响应，非流式；模型最多 4 轮、工具最多 6 次。配置缺失返回 503，模型错误为 502，参数无效为 422，并发冲突为 409，提问限流为 429。错误不生成模拟回复、不保存半轮对话。
 
 笔记 body：`{text, kind, runId?}`，kind 为 feedback / conclusion / todo。上限 30 条、每条 600 字，标记 student_saved / unverified。对话上限与部署边界见 [助手说明](../backend/AGENT-TUTOR.md)。
+
+### v0.7.1 编号定位
+助手详情工具接受 `run_number`（页面第N次）或 `run_id`，两者只能选一。列表工具返回含 runNumber 的轻量索引并支持 limit/offset。明确编号的曲线问题由服务端先读取完整曲线再生成回答；无需更改前端请求或数据库结构。
