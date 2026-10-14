@@ -2,15 +2,18 @@
 
 React + TypeScript + Vite + Ant Design + ECharts。源代码位于本目录。
 
-## 当前范围（v0.6）
+## 当前范围（v0.7）
 - 应用选择页：图像分类体验与图像分类实验入口。
 - 图像分类体验：FastAPI + PyTorch CPU 后端，接入训练好的 36 类果蔬分类模型；上传图片和摄像头实时推理，显示中文前五名、推理耗时和低置信度提示。
-- 分类实验：新增项目与样本接口、MobileNetV3 特征提取、分类层真实训练与校验。默认使用真实模式，需配置独立 MySQL 开发库；公司数据库尚未接入。
-- 助手：确定性预设回复演示，尚未连接大模型。
+- 分类实验：新增项目与样本接口、MobileNetV3 特征提取、分类层真实训练与校验。默认使用真实模式，使用项目独立 MySQL 开发库；本机连接配置不纳入 Git。
+- 实验助手：百炼文字模型接入、基础／进阶切换、六个只读实验工具、项目对话和笔记；需本机配置后使用。真实模型连通性及回答质量待密钥配置后验证。应用选择页的导航助手仍为预设演示。
 - 真实实验记录保存在后端，体验记录仍保存在当前浏览器 IndexedDB；体验记录保留最近 12 条，可导出 JSON，不包含模型权重。
 
 体验图片或摄像头帧会发送给本地后端推理，后端不保存图片。旧版模拟记录保留并标为“历史演示”。后端不可用时明确报错，不回退为模拟结果。
 体验记录保存在浏览器，真实实验保存到后端。目前没有学生账号和云端部署，清理站点数据会删除体验记录和工作区访问凭证。旧版本机演示数据保持不变。
+
+## 实验辅导助手配置
+双击「配置实验助手.cmd」，在本机填写百炼中国内地 Base URL、模型及 API Key，然后重启后端。模型默认 `qwen3.8-max`；密钥仅保存到被 Git 忽略的 `backend/.env.agent`。详见 [助手配置与功能边界](backend/AGENT-TUTOR.md)。
 
 ## 运行
 先按 [后端启动说明](backend/README.md) 安装依赖并下载模型。后端准备好后，在项目目录运行：
@@ -43,7 +46,7 @@ pnpm test
 - `docs/API-CONTRACT.md`：后续 FastAPI 对接建议。
 
 ## 后续架构
-后端使用 FastAPI + Pydantic；公司 MySQL 配合 SQLAlchemy/Alembic；图片和模型存对象存储；Linux Celery worker + Redis 执行真实长任务；PyTorch + torchvision 完成图像训练。当前已实现真实推理、单进程训练任务及 MySQL 持久化接口；公司库尚未接入。对象存储和 Celery / Redis 尚未实现。
+后端使用 FastAPI + Pydantic；公司 MySQL 配合 SQLAlchemy/Alembic；图片和模型存对象存储；Linux Celery worker + Redis 执行真实长任务；PyTorch + torchvision 完成图像训练。当前已实现真实推理、单进程训练任务及 MySQL 持久化接口；连接使用本机配置。对象存储和 Celery / Redis 尚未实现。
 
 ## 旧版 mock 模式的演示边界
 每项目最多 8 类、200 张图片；单次上传 50 张，单张不超过 5 MB。演示只要求每类至少一张，**不意味着该数量足以真实训练**。
@@ -114,3 +117,8 @@ Sites 私有预览仅托管静态前端，不代替未来公司的 FastAPI/MySQL
 详见 [backend/TRAINING.md](backend/TRAINING.md)。公司库尚待确认与配置；测试使用临时数据库，不自动回退模拟训练。
 可双击 启动后端.cmd；配置数据库.cmd 仅保存本机配置，不连接或建库。
 回退点 v0.5.1-experience-without-assistant；本次代码版本 v0.6-real-classification-training。
+
+## 实验辅导助手 v0.7
+- 自由提问由主 Agent 按需调用工具；快捷按钮固定读取相关记录。仅发送文字摘要，不上传图片。
+- 项目对话保存在后端，基础／进阶每次只选择一种。项目笔记由用户确认保存，不自动当作已验证事实。
+- 回退点 `v0.6-before-agent`；本次版本 `v0.7-experiment-tutor-agent`。代码版本不会自动回退数据库。

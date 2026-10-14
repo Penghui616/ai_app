@@ -80,4 +80,5 @@ class Store:
             row=s.get(ProjectRow,id)
             if row is None or row.owner!=owner: return
             for run in s.scalars(select(RunRow).where(RunRow.project_id==id)):s.delete(run)
+            if getattr(self,"agent_cleanup",None):self.agent_cleanup(s,owner,id)
             s.delete(row)

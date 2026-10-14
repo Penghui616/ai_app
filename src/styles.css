@@ -125,3 +125,14 @@
 .camera-preview{width:100%}
 
 .model-supported{margin-top:10px;font-size:12px;color:#6d86a5}.model-supported summary{cursor:pointer}.model-supported>div{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.model-supported .ant-tag{margin:0}.prediction-uncertain{margin-top:14px;font-size:12px}.prediction-uncertain .ant-alert-message{font-size:12px}
+
+/* Real experimental tutor */
+.tutor-context{margin:12px 16px 0;padding:12px;background:#fff;border:1px solid #e4ebf7;border-radius:12px;flex-shrink:0;max-height:40vh;overflow:auto}
+.tutor-project{display:flex;align-items:center;justify-content:space-between;gap:8px}.tutor-project strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#395476}.tutor-stats{font-size:11px;color:#7b8da7;margin:8px 0 12px}
+.tutor-hint{font-size:11px;line-height:1.7;color:#8190a5;margin:7px 0}.tutor-thread-row{display:flex;gap:8px;align-items:center}.tutor-thread-row select{flex:1;min-width:0}.tutor-run-selects{display:grid;gap:8px}.tutor-run-selects select{width:100%;min-width:0}
+.tutor-pending{font-size:12px;color:#527eb9;padding:12px;background:#edf3ff;border-radius:8px}.assistant-evidence pre{white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;background:#eef3fa;padding:8px;border-radius:6px}
+.tutor-notes{display:grid;gap:8px}.tutor-note{padding:10px;background:#fff;border:1px solid #e4ebf7;border-radius:8px;overflow-wrap:anywhere}.tutor-note>span:not(.ant-tag){display:block;white-space:pre-wrap;font-size:12px;line-height:1.8}.tutor-note small{display:block;color:#8a9ab1}
+
+.tutor-runs{margin-top:10px;font-size:12px;color:#395476}.tutor-runs>summary{cursor:pointer;padding:7px 0}.tutor-runs .tutor-run-selects{padding:8px 0}
+
+.tutor-context select,.tutor-notes select{height:38px;max-width:100%;min-width:0;padding:0 8px;border:1px solid #d9dfe8;border-radius:8px;background:#fff;color:#395476;font:inherit;font-size:12px;text-overflow:ellipsis}.tutor-context select:focus-visible,.tutor-notes select:focus-visible{outline:2px solid #7baaff;outline-offset:1px}.tutor-context select:disabled,.tutor-notes select:disabled{opacity:.6}

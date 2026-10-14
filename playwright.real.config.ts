@@ -2,7 +2,7 @@ import {defineConfig} from '@playwright/test';
 import base from './playwright.config';
 export default defineConfig({
  ...base,
- testMatch:['**/applications.spec.ts','**/experience-backend.spec.ts','**/training-real.spec.ts'],
+ testMatch:['**/applications.spec.ts','**/experience-backend.spec.ts','**/training-real.spec.ts','**/agent-ui.spec.ts'],
  use:{...base.use,baseURL:'http://127.0.0.1:5174',launchOptions:{executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']}},
  webServer:[
   {command:'"backend/.venv/Scripts/python.exe" -m uvicorn backend.tests.dev_server:app --host 127.0.0.1 --port 8001 --no-access-log',url:'http://127.0.0.1:8001/api/health',env:{VISION_TEST_SERVER:'1'},reuseExistingServer:false,timeout:120000},

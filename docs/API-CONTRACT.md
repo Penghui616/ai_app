@@ -78,3 +78,21 @@
 - POST /api/v1/projects/{id}/training-runs/cancel：只表示请求取消，需继续查询最终状态。
 - POST /api/v1/projects/{id}/predictions?record=true：原始图片，使用当前版本最近完成模型；文件预测保存最近 50 条，实时帧用 record=false。
 真实训练包含 isMock=false、backbone、seed、trainSampleIds、validationSampleIds 和 metrics。模型版本为 runId。服务端使用 HttpOnly 工作区 cookie 检查归属。409 为冲突，503 为数据库或模型未就绪。无排队或模型导出接口，旧版建议路径中未列为实现的接口仍为设计。
+
+## 已实现 实验辅导助手 v0.7
+以下路径均以 `/api/v1/projects/{pid}/assistant` 为前缀，继承工作区 cookie 和项目归属校验。
+
+| 方法 | 路径 | 用途 |
+| --- | --- | --- |
+| GET | 空路径 | 配置是否完整、模型名、对话列表、项目笔记；不返回密钥 |
+| POST | /threads | 创建对话，body: {mode: basic 或 advanced} |
+| GET / DELETE | /threads/{tid} | 读取或删除当前项目对话 |
+| POST | /threads/{tid}/messages | 完成问答，返回 {thread, reply} |
+| POST | /notes | 保存用户确认的项目笔记 |
+| DELETE | /notes/{nid} | 删除项目笔记 |
+
+消息 body：`{requestId, question, mode, action, runId, compareRunId, client:{testedRunId}}`。requestId 为 UUID；相同编号的已完成请求返回已保存的答复。action 为 question / next / explain / compare。compare 必须选择当前项目两条不同记录。浏览器上报只用于操作指导，不作为正确标签。
+
+reply 含 text、mode、evidence（工具数据快照及版本）、usage、contextChanged。普通 JSON 响应，非流式；模型最多 4 轮、工具最多 6 次。配置缺失返回 503，模型错误为 502，参数无效为 422，并发冲突为 409，提问限流为 429。错误不生成模拟回复、不保存半轮对话。
+
+笔记 body：`{text, kind, runId?}`，kind 为 feedback / conclusion / todo。上限 30 条、每条 600 字，标记 student_saved / unverified。对话上限与部署边界见 [助手说明](../backend/AGENT-TUTOR.md)。

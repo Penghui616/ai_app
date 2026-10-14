@@ -7,7 +7,7 @@ from backend.model_spec import MODEL_ID
 
 from backend.image_io import MAX_BYTES, MAX_PIXELS, TYPES, decode_image
 
-def create_app(classifier=None, training_service=None):
+def create_app(classifier=None, training_service=None, agent_provider=None):
     from backend.training import TrainingService, install_training
     training = training_service or TrainingService()
     engine=classifier if classifier is not None else FruitClassifier()
@@ -15,14 +15,17 @@ def create_app(classifier=None, training_service=None):
     async def lifespan(app):
         await run_in_threadpool(engine.load)
         await run_in_threadpool(training.initialize)
+        await run_in_threadpool(app.state.agent.initialize)
         try:
             yield
         finally:
             await run_in_threadpool(training.close)
-    app=FastAPI(title="AI实验室 · 图像分类体验",version="0.6.0",lifespan=lifespan)
+    app=FastAPI(title="AI实验室 · 图像分类体验",version="0.7.0",lifespan=lifespan)
     app.state.classifier=engine
     app.state.training=training
     install_training(app,training)
+    from backend.agent import install_agent
+    install_agent(app, training, agent_provider)
 
     @app.get("/api/health")
     async def health(): return {"status":"ok","modelStatus":engine.status}
