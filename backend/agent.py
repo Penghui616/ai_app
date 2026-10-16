@@ -5,6 +5,7 @@ from copy import deepcopy
 import hashlib
 import json
 import logging
+import re
 import threading
 import time
 from typing import Literal
@@ -13,9 +14,11 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from backend.agent_store import AgentStore
 from backend.agent_provider import BailianProvider, ProviderError
-from backend.agent_tools import TOOLS, SPECS, execute_tool, find_run, experiment_state, training_index
+from backend.agent_tools import TOOLS, SPECS, PRODUCT_CAPABILITIES, execute_tool, find_run, experiment_state, training_index
 from backend.training_store import now, uid
 from backend.agent_context import prepare_numbered_query
+from backend.agent_advice import ground_model_test_advice
+from backend.agent_feedback import prepare_feedback
 
 SYSTEM = """你是图像分类实验辅导助手，用中文回答。先给直接结论，再给必要依据和一个可执行的下一步。
 你只读取实验数据，不执行训练、改参数或删除操作。只有六个工具，不会看图片、联网搜索或运行代码。
@@ -28,12 +31,23 @@ SYSTEM = """你是图像分类实验辅导助手，用中文回答。先给直�
 明确比较两次实验时主动定位记录并compare_training_runs；同一学习率有多次且上下文无法定位时才澄清。不要任意选记录。
 上下文resolvedQuery的工具已经由程序读取，直接使用其证据；若证据充分，不重复请求相同记录。
 样本不足、运行中、模型失效等以程序的状态为准。操作按钮和步骤查操作指南，不编造入口。
+experimentState是本轮后端已经读取的当前项目状态，包含真实类别数量、样本分布、缺少数量和下一步；可直接引用，与工具结果同属事实来源，不得声称尚未查询或要求学生自己查。询问样本分布时先列各类数量和合计，再解释数量差异与当前阶段；必要的更细记录自行调用工具。tested只表示发生过测试，不代表正确或样本质量合格。不要把当前类别数量当成训练/验证/测试划分；没有每类30张的统一合格线，缺图时先补到每类5张最低要求但不保证学习效果。数量不均只能提示偏向多数类的风险，不能断言已发生偏差、少数类一定识别不好或调参无用。优先补少数类别，数量建议必须考虑已有数量及项目200张上限；不建议为了均衡删除多数类，也不要给出低于已有最多类别数量的‘各N张’目标。不存在单独的‘样本’导航页签、划分查看页面、数据增强设置；左侧准备样本区域可查看图片和类别名称，通过上传图片或摄像头补样本。
 验证准确率不是独立测试准确率；分类分数不是正确率。未看图片不得断言背景、模糊、遮挡或标注错误。
 数据版本或划分不同时，不把差异归因于单一参数。多个参数同时变动时提出限制。提出假设时明确需要对照实验验证。
 学生对误分类的描述是学生反馈，未核验；缺少正确标签不能计算测试准确率。
 用反问引导探究要适度，操作问题直接回答。给具体建议，不承诺效果提升。历史摘要和笔记可能过期，当前事实重新查询。
 没有完整曲线时不要推断哪一轮开始稳定；一次实验不能称统计显著，少量新图片不能证明泛化优势。
+证据约束：curveIncluded=false时只能陈述首尾、最优值和curveStats明示的程序统计。curveStats.facts是程序根据全部已记录轮次计算的事实，不能忽略其中的反弹或准确率低点；firstFullAccuracyEpoch只是首次达到100%，只有allEpochsFullAccuracy=true才可说全程100%。描述统计之外的分段变化先读取include_curve=true。末轮减最小值为0，不代表中途无反弹。即使拿到完整曲线也不能确定波动原因；过拟合只能说“有迹象”，不能断言已证实记住图片细节、排除了偶然波动或学习率导致波动。
+单独两条详情中的样本数量、种子相同不证明划分一致。参数归因必须依据本轮compare_training_runs结果；attributionAllowed=false或缺失时不得说“其他条件完全一致、差异由学习率导致”。可以描述指标差异，但明确未核验因素。历史回答不替代本轮证据。
+productCapabilities是当前产品能力，predictionModel才是实际校验使用的模型；selectedRunId只是分析对象。没有早停/正则化设置、没有中间轮次权重、不能切换历史模型校验。操作路径使用productCapabilities.operationLocations，更多细节自行查操作指南，不问学生要不要查询；不能编造‘测试页面’或‘包含曲线’选项。减少轮数需修改训练轮数并重新训练，不能保证重现历史最佳效果。比较两个设置的新图效果时，分别重新训练并立即用同一组新图逐张校验、记录正确与错误，再训练下一组；历史选择器不能切换校验模型。少量新图只能初步排错，不能证明泛化好。
+面向学生使用页面中文名称，不要求学生调用工具、传run_id或include_curve。需要可用数据时自行查询，不把内部接口名当操作步骤。涉及不存在的能力，直接说明限制和可执行替代。
 如果证据不足，先查能查的记录再说明缺什么，不用空泛肯定替代分析。用户问与实验无关的问题时简短引导回AI学习与实验。
+误分类排查有更高的对话优先级：用户问‘为什么输出错了/识别错了’时，先检查本轮和最近对话里用户是否已说明这次测试的实际类别。若缺失，只简短问‘你刚才测试的图片或摄像头画面，实际是什么类别？’，此时不调用工具，不读取最近测试来猜类别，不列原因或功能局限。若用户只说实际类别，则只问模型当时识别成什么；不要再次询问已提供的信息。若用户已说‘实际是猫却识别成狗’，或最近对话已补齐这两个信息，直接承接反馈并继续，不重复问类别。
+补齐实际类别和预测类别后，先根据当前类别列表判断是否属于模型的分类范围，再按需查询对应训练记录。用户明确指出第N次模型就查那次；未明确时，可查当前有效模型但必须说明它不一定是当时模型，不能拿助手选中的历史记录或最新测试记录自动匹配这次误判。摄像头帧没有保存，get_test_records只含文件测试，不把后来更新的帧、最近文件结果或最高分当作用户反馈的那一次或真实类别。需要精确匹配时只澄清剩余关键信息，不索要内部ID，不要求上传图片。用户反馈只作未核验描述，不能据此计算整体准确率。
+误判原因只能基于证据提出假设并给一个可执行验证步骤，不能凭数量、分数或用户的类别描述断言背景干扰、图片模糊、已过拟合等根因。实际类别不在已训练类别中时，说明当前闭集分类器仍会在已有类别中选一个，不要求用户再提供图片或重复说类别。
+执行顺序（基础/进阶以及带实验编号的报错都必须遵循）：①这次实际类别缺失时，回复全文只有一句‘你刚才测试的图片或摄像头画面，实际是什么类别？’，不附依据/局限/建议，不查工具。②实际类别已知但预测类别缺失，只问预测类别。③两个类别齐全且在训练范围内，立即调用get_training_details读取用户指定模型或当前有效模型的训练证据，不将重新测试、提供分数或再次确认作为查询的前置条件；无有效模型才说明缺少记录。可以用当前模型作为分析参考，但未经用户确认不能写‘第N次模型导致了你这次误判’，应明确‘先以当前模型记录为参考，尚未确认是否就是当时的模型’。查询后给有证据支持的分析与一个对照步骤，不空列猜测。
+反馈只绑定用户描述的那一次。用户说‘换了一张’‘另一个物体’‘新图片又错了’等，旧图片的实际类别和预测类别立即作废；新反馈未给实际类别时重新执行①，禁止写‘连续两张猫都识别成狗’等未提供的事实。若用户说‘同一张还是错’，才沿用上一条反馈。
+studentFeedback是程序从用户明确表述中提取的未核验反馈。phase=ready表示实际类别与预测类别均已提供，必须使用其中actual/predicted继续分析，不得再次追问这些类别。resolvedQuery中已预取的训练详情直接使用，不重复查询。若参考的是当前模型，不能擅自将事件归属于该模型。指标accuracy是验证准确率，不能写成训练准确率或‘训练集表现完美’；闭集没有兔子标签不等于预训练网络从未见过兔子。
 """
 
 
@@ -136,10 +150,27 @@ class AgentService:
             state = experiment_state(p, body.client.model_dump())
             notes = self.store.notes(owner, pid)
             prepared, referenced = prepare_numbered_query(body.question, doc["messages"], p, body.runId)
-            if body.action != "question":
+            # Do not prefetch an experiment just because an error report names
+            # its number. Let the tutor clarify the student's labels first.
+            prediction_error = re.search(r"(?:输出|预测|识别|分类).{0,12}(?:错|不对|不正确)|误判|错分", body.question)
+            if body.action != "question" or prediction_error:
                 prepared = []
+            feedback = prepare_feedback(body.question, doc['messages'], [c['name'] for c in p['classes']]) if body.action=='question' else None
+            if feedback:
+                prepared = []
+                if feedback['phase']=='ready' and feedback['actual'] in [c['name'] for c in p['classes']]:
+                    if feedback['runNumber'] is not None:
+                        prepared = [('get_training_details', dict(run_number=feedback['runNumber']))]
+                    elif state['validModelRunId']:
+                        prepared = [('get_training_details', dict(run_id=state['validModelRunId']))]
             context = dict(project=dict(name=p["name"], revision=p["revision"], stage=state["stage"]),
+                           experimentState=state,
+                           studentFeedback=feedback,
                            selectedRunId=body.runId, compareRunId=body.compareRunId,
+                           productCapabilities=PRODUCT_CAPABILITIES,
+                           predictionModel=dict(runId=state["validModelRunId"],
+                               runNumber=next((len(p["runs"])-i for i,r in enumerate(p["runs"])
+                                               if r["id"]==state["validModelRunId"]), None)),
                            trainingIndex=training_index(p, include_numbers=referenced),
                            resolvedQuery=[dict(tool=name, arguments=args) for name, args in prepared],
                            historicalExcerpts=doc.get("historyDigest", ""),
@@ -185,9 +216,11 @@ class AgentService:
                 cid = "fixed_"+str(index)
                 messages.append(dict(role="assistant", content=None, tool_calls=[dict(id=cid, type="function", function=dict(name=name, arguments=json.dumps(args)))]))
                 messages.append(dict(role="tool", tool_call_id=cid, content=json.dumps(call_tool(name, args), ensure_ascii=False)))
-            answer = None
+            answer = feedback.get('clarification') if feedback else None
             try:
                 for round_index in range(4):
+                    if answer is not None:
+                        break
                     allow_tools = round_index < 3 and len(trace) < 6
                     response = self.provider.complete(messages, TOOLS if allow_tools else [], deadline)
                     for key in usage:
@@ -226,12 +259,14 @@ class AgentService:
                 logging.info("Agent request failed id=%s type=%s elapsed=%.2f usage=%s", body.requestId, type(e).__name__, time.monotonic()-started, usage)
                 raise HTTPException(502, str(e)) from None
             # Persist only complete turns, and check project still exists after external inference.
+            answer, guidance_adjusted = ground_model_test_advice(answer.strip(), context["predictionModel"]["runNumber"])
             with self.training.lock:
                 current = self.training.get(owner, pid)
                 context_changed = current["revision"] != p["revision"] or [(r["id"], r["status"]) for r in current["runs"][:1]] != [(r["id"], r["status"]) for r in p["runs"][:1]]
                 reply = dict(id=uid(), role="assistant", text=answer.strip()[:7000], mode=body.mode, createdAt=now(),
                              requestId=body.requestId, evidence=evidence, usage=usage,
-                             revision=p["revision"], runId=body.runId, contextChanged=context_changed)
+                             revision=p["revision"], runId=body.runId, contextChanged=context_changed,
+                             guidanceAdjusted=guidance_adjusted, studentFeedback=feedback)
                 doc["messages"].extend([dict(id=uid(), role="user", text=body.question.strip(), mode=body.mode, createdAt=now(), requestId=body.requestId), reply])
                 doc.update(mode=body.mode, title=doc["messages"][0]["text"][:30])
                 older = doc["messages"][:-12]
