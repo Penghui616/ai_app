@@ -20,7 +20,7 @@ def create_app(classifier=None, training_service=None, agent_provider=None, spee
             yield
         finally:
             await run_in_threadpool(training.close)
-    app=FastAPI(title="AI实验室 · 图像分类体验",version="0.7.0",lifespan=lifespan)
+    app=FastAPI(title="AI 应用实验平台",version="0.9.0",lifespan=lifespan)
     app.state.classifier=engine
     app.state.training=training
     install_training(app,training)
