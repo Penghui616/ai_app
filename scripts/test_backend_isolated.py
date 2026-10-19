@@ -17,7 +17,7 @@ def main() -> int:
     sys.path.insert(0, str(root))
     # Remove names without reading or printing credential values.
     for key in list(os.environ):
-        if key.startswith(("MYSQL_", "AGENT_", "VISION_", "DASHSCOPE_")):
+        if key.startswith(("MYSQL_", "AGENT_", "VISION_", "DASHSCOPE_", "SPEECH_")):
             os.environ.pop(key, None)
     os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
     os.environ["HF_HUB_OFFLINE"] = "1"
@@ -30,7 +30,7 @@ def main() -> int:
 
     args = sys.argv[1:] or [
         "backend/tests/test_agent.py", "backend/tests/test_agent_numbering.py",
-        "backend/tests/test_agent_evidence.py", "backend/tests/test_agent_feedback.py", "-q"
+        "backend/tests/test_agent_evidence.py", "backend/tests/test_agent_feedback.py", "backend/tests/test_speech.py", "-q"
     ]
     if any(arg.startswith(("--basetemp", "--override-ini")) or arg == "-o" for arg in args):
         raise SystemExit("Do not override the isolated test directories.")

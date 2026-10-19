@@ -1,0 +1,2 @@
+# Audio decoder binary for Windows/Linux/macOS; no local ASR model weights needed.
+imageio-ffmpeg==0.6.0

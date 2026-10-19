@@ -10,7 +10,7 @@
 - 图像体验：本地 36 类果蔬预训练模型。图像实验：冻结 MobileNetV3 Large，缓存特征，仅训练分类层；固定种子 42。单进程原型，尚无课堂并发验证。
 - 实验助手：`agent.py` 编排；`agent_context.py` 解析实验编号；`agent_tools.py` 提供六个只读工具；`agent_provider.py` 对接百炼文字模型；`agent_store.py` 保存项目对话和笔记。无 LangChain/LangGraph。
 - `backend/tests/` 是 pytest；`tests/` 是 Playwright。`docs/API-CONTRACT.md`、`backend/AGENT-TUTOR.md` 是接口与助手说明。旧文档中的历史交付状态可能过期，以代码和实际验证为准。
-- 图片、特征、分类层模型位于 `backend/data/`，预训练权重位于 `backend/models/`，均不进 Git。语音、翻译等应用尚未交付。
+- 图片、特征、分类层模型位于 `backend/data/`，预训练权重位于 `backend/models/`，均不进 Git。语音识别体验已接入百炼 qwen3-asr-flash，入口 /#/speech；翻译等应用尚未交付。
 
 ## 开工与 ECC 使用
 
@@ -77,3 +77,10 @@ git diff --check
 - 模拟模型测试、真实模型推理/训练、真实 Qwen 回答质量、真实摄像头、课堂试用是不同证据，分别报告。
 - 真实 Qwen 验收按 `docs/AGENT-REGRESSION.md` 执行；本次不读取密钥、不发起付费调用。
 - 不自动提交或 push；用户要求保存版本时检查差异和敏感文件，再按授权范围执行。代码回退不等于数据库、图片或浏览器记录回退。
+
+## 语音识别体验
+
+- backend/speech.py 提供独立语音接口，speech_audio.py 有界解码，speech_provider.py 调用官方百炼；不读写项目数据库。
+- 音频通过后端上传百炼，参考朗读材料不作为模型输入；不保存录音或转写历史。不能将助手文字请求与音频数据混用。
+- 仅运行隔离测试和合成音频验证；真实百炼调用需用户授权程序加载配置，禁止打印密钥。
+- 默认隔离后端测试已包含语音用例；前端回归运行 node scripts/test_speech_frontend.mjs，仅启动隔离预览并拦截 API。详见 docs/SPEECH-EXPERIENCE.md。
