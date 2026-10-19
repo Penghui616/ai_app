@@ -51,4 +51,4 @@ git diff --check
 官方接口：https://help.aliyun.com/zh/model-studio/qwen-tts-realtime-client-events
 服务端协议：https://help.aliyun.com/zh/model-studio/qwen-tts-realtime-server-events
 
-没有自动提交或推送 Git。
+版本保存情况以仓库 Git 提交记录为准。

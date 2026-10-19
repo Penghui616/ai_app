@@ -1,59 +1,114 @@
-# 图像实验室
+# AI 应用实验平台
 
-React + TypeScript + Vite + Ant Design + ECharts。源代码位于本目录。
+面向中小学 AI 教学的本地开发原型，按“应用体验”和“应用实验”组织学习流程。学生可体验图像分类、语音识别与语音合成，也可采集图片、训练分类模型并通过实验助手分析结果。
 
-## 当前范围（v0.7）
-- 应用选择页：图像分类体验与图像分类实验入口。
-- 图像分类体验：FastAPI + PyTorch CPU 后端，接入训练好的 36 类果蔬分类模型；上传图片和摄像头实时推理，显示中文前五名、推理耗时和低置信度提示。
-- 分类实验：新增项目与样本接口、MobileNetV3 特征提取、分类层真实训练与校验。默认使用真实模式，使用项目独立 MySQL 开发库；本机连接配置不纳入 Git。
-- 实验助手：百炼文字模型接入、基础／进阶切换、六个只读实验工具、项目对话和笔记；需本机配置后使用。真实模型连通性及回答质量待密钥配置后验证。应用选择页的导航助手仍为预设演示。
-- 真实实验记录保存在后端，体验记录仍保存在当前浏览器 IndexedDB；体验记录保留最近 12 条，可导出 JSON，不包含模型权重。
+前端采用 React + TypeScript + Vite + Ant Design + ECharts；后端采用 FastAPI、PyTorch、SQLAlchemy / MySQL，文字助手和语音功能调用阿里云百炼。本文对应当前开发分支，更新于 2026-10-19。
 
-体验图片或摄像头帧会发送给本地后端推理，后端不保存图片。旧版模拟记录保留并标为“历史演示”。后端不可用时明确报错，不回退为模拟结果。
-体验记录保存在浏览器，真实实验保存到后端。目前没有学生账号和云端部署，清理站点数据会删除体验记录和工作区访问凭证。旧版本机演示数据保持不变。
+## 当前已实现
 
-## 实验辅导助手配置
-双击「配置实验助手.cmd」，在本机填写百炼中国内地 Base URL、模型及 API Key，然后重启后端。模型默认 `qwen3.8-max`；密钥仅保存到被 Git 忽略的 `backend/.env.agent`。详见 [助手配置与功能边界](backend/AGENT-TUTOR.md)。
+| 模块 | 功能 | 页面 |
+| --- | --- | --- |
+| 应用选择 | 应用体验、应用实验分区；未完成的应用显示“开发中” | `/#/apps` |
+| 图像分类体验 | 本地 36 类果蔬模型；上传图片、摄像头识别、中文前五名、保存观察记录 | `/#/experience` |
+| 图像分类实验 | 自定义类别、上传或摄像头采样、真实训练、训练曲线、文件和摄像头校验 | `/#/training` |
+| 实验辅导助手 | 基础／进阶讲解、查询实验状态和训练记录、比较参数与指标、项目对话和笔记 | 分类实验内 |
+| 语音识别体验 | 录音或上传音频、试听、普通话／英语／自动语言识别、展示转写与耗时 | `/#/speech` |
+| 语音合成体验 | 文字与分类素材、六种音色、语速／音调／音量、试听与 WAV 下载 | `/#/tts` |
 
-## 运行
-先按 [后端启动说明](backend/README.md) 安装依赖并下载模型。后端准备好后，在项目目录运行：
+### 图像实验与辅导
+
+- 分类实验冻结 MobileNetV3-Large，缓存图片特征，只训练自定义分类层；学习率、优化器、批大小与轮数实际参与训练。项目、训练记录和助手对话由后端持久化。
+- 助手通过六个只读工具获取当前项目证据。第 1 次实验指最早的训练，失败或取消也占编号；比较实验需查询参数、数据版本和样本划分，不能凭对话记忆判断。
+- 学生反馈“识别错了”时，先澄清实际类别和预测类别，再结合实验记录提供建议。助手只接收必要文字摘要，不查看图片或摄像头画面，不自动修改参数或发起训练。
+- 图像体验记录仍保存在浏览器 IndexedDB，保留最近 12 条，可导出 JSON；它们不同于后端实验记录。
+
+### 语音体验
+
+- **语音识别**：百炼 `qwen3-asr-flash`；单段最多 60 秒、原文件最多 20 MB，支持 WAV、MP3、M4A、OGG、WebM。录音完成后提交识别，不是边说边转写。不提供发音评分。
+- **语音合成**：百炼 `qwen3-tts-flash-realtime`；最多 100 个 Unicode 字符，提供古诗词、英语角、小故事和绕口令素材。
+- 六种音色：明亮女声 · 芊悦、温柔女声 · 苏瑶、活力男声 · 晨煦、新闻播报男声 · 阿闻、美式英语女声 · 詹妮弗、美式英语男声 · 艾登。
+- 语速、音调和音量直接传给模型，调整后需重新合成。后端使用 Realtime WebSocket，页面等待完整 WAV 后播放，当前不是流式边生成边播放。音调变化也可能影响时长。
+- 语音识别的音频、语音合成的文字经后端发送百炼；平台不保存语音历史，密钥不发送给浏览器。取消等待不保证上游停止或不计费。
+
+## 安装与启动（Windows）
+
+需要 Python 3.12、Node.js 22.12+ 或 24，以及 pnpm。所有命令均在项目根目录执行。
+
+1. 按 [后端安装说明](backend/README.md) 创建虚拟环境、安装依赖；图像模块需下载对应本地权重。`backend/requirements.txt` 已包含语音解码与 WebSocket 依赖，语音模块不需要本地 ASR/TTS 模型或 GPU。
+2. 图像实验使用独立 MySQL 项目库，按 [训练与数据库接入说明](backend/TRAINING.md) 配置。启动正式后端可能连接配置中的数据库并创建缺失的项目表，应先确认库名与授权。
+3. 云端助手及语音使用本机百炼配置，见下一节。
+4. 分别打开两个 PowerShell 终端：
+
 ```powershell
+# 终端一：启动后端，默认端口 8000
 .\启动后端.cmd
 ```
-然后在另一个终端启动前端：
-需要 Node.js 22.12+ 或 24，以及 pnpm。
-```sh
-pnpm install
-pnpm dev
-```
-浏览器打开终端提示的本地地址。默认 http://127.0.0.1:5173/ 。
 
-```sh
-pnpm build
-pnpm preview
-pnpm test
+```powershell
+# 终端二：首次安装前端依赖后启动，默认端口 5173
+pnpm.cmd install
+pnpm.cmd dev
 ```
 
-## 结构
-- `src/App.tsx`：项目管理和三栏工作台。
-- `src/components/TrainingMonitor.tsx`：训练监控弹窗和 ECharts。
-- `src/types.ts`：项目、样本、任务与预测类型。
-- `src/services/contracts.ts`：前端使用的 API 接口。
-- `src/services/api.ts`：实现切换入口。
-- `src/services/mockApi.ts`：明确标注的前端模拟实现。
-- `src/services/repository.ts`：IndexedDB 本地持久化。
-- `src/services/images.ts`：图片校验和本地预览处理。
-- `docs/API-CONTRACT.md`：后续 FastAPI 对接建议。
+打开 [应用选择页](http://127.0.0.1:5173/#/apps)。摄像头和麦克风需要浏览器授权，以及 localhost/127.0.0.1 或 HTTPS 安全环境。停止服务使用各终端的 Ctrl+C。
 
-## 后续架构
-后端使用 FastAPI + Pydantic；公司 MySQL 配合 SQLAlchemy/Alembic；图片和模型存对象存储；Linux Celery worker + Redis 执行真实长任务；PyTorch + torchvision 完成图像训练。当前已实现真实推理、单进程训练任务及 MySQL 持久化接口；连接使用本机配置。对象存储和 Celery / Redis 尚未实现。
+拉取新版本后，如依赖变化需重新安装对应依赖；如后端代码或配置变化需重启后端，有训练任务时先等待完成。
 
-## 旧版 mock 模式的演示边界
-每项目最多 8 类、200 张图片；单次上传 50 张，单张不超过 5 MB。演示只要求每类至少一张，**不意味着该数量足以真实训练**。
-一次只运行一个模拟训练。改变样本或标签会使当前预测入口失效，需重新演示训练。
-记录只保留最近 12 次模拟任务。
+## 百炼配置
 
-Sites 私有预览仅托管静态前端，不代替未来公司的 FastAPI/MySQL 部署。
+双击 `配置实验助手.cmd`，在本机填写中国内地兼容接口 Base URL、文字模型名称及 API Key。默认文字模型配置为 `qwen3.8-max`，实际模型权限以自己的百炼账户为准。
+
+配置保存在被 Git 忽略的 `backend/.env.agent`，不要提交或分享该文件。
+
+| 功能 | 配置来源 |
+| --- | --- |
+| 实验助手 | 配置工具生成的文字模型与 Base URL、`DASHSCOPE_API_KEY` |
+| 语音识别 | 优先 `SPEECH_API_KEY`、`SPEECH_BASE_URL`，未设置时复用 `DASHSCOPE_API_KEY`、`AGENT_BASE_URL`；模型固定为 `qwen3-asr-flash` |
+| 语音合成 | 密钥优先级 `TTS_API_KEY` → `SPEECH_API_KEY` → `DASHSCOPE_API_KEY`；使用固定官方 Realtime 端点，不复用文字模型 HTTP 地址 |
+
+修改配置后重启后端。状态“可用”仅表示本地配置检查通过；实际调用成功才能确认账号权限与额度。详情见 [助手配置](backend/AGENT-TUTOR.md)、[语音识别](docs/SPEECH-EXPERIENCE.md)、[语音合成](docs/TTS-EXPERIENCE.md)。
+
+## 验证与开发
+
+```powershell
+# 默认覆盖助手与两项语音服务；禁用 dotenv、外网和非临时 SQLite
+.\backend\.venv\Scripts\python.exe -B scripts/test_backend_isolated.py
+# 所有后端测试；涉及真实图像模型的用例需预先准备权重
+.\backend\.venv\Scripts\python.exe -B scripts/test_backend_isolated.py backend/tests -q
+# 前端构建和语音页面检查
+pnpm.cmd build
+node scripts/test_speech_frontend.mjs
+node scripts/test_tts_frontend.mjs
+git diff --check
+```
+
+语音浏览器脚本使用隔离预览与模拟 API，不启动正式后端。`pnpm.cmd test` 使用 `playwright.real.config.ts`，启动 8001 / 5174 的测试服务；运行前检查本机模型、Edge 路径和配置隔离，不能将名称中的“real”理解为真实 Qwen 验证。具体边界见 [开发约定](AGENTS.md)。
+
+最近一次功能交付验证：默认隔离后端 140 项、语音识别浏览器 21 项、语音合成浏览器 49 项通过，类型检查与生产构建通过。语音识别另用两段程序合成语音调用真实百炼；语音合成另完成 12 次真实调用，覆盖六种音色及参数变化。上述是已记录的验证结果，不代表每次拉取都已重新执行，也不能代替儿童语音、课堂噪声、人工听感或多人并发验收。
+
+## 代码与文档导航
+
+| 路径 | 内容 |
+| --- | --- |
+| `src/App.tsx`、`src/components/` | 路由、应用目录、实验工作台及各体验页面 |
+| `src/services/` | 前后端接口、浏览器存储与明确标识的历史模拟实现 |
+| `backend/training.py`、`learning.py` | 训练任务、特征提取、分类层学习与预测 |
+| `backend/agent*.py` | 实验辅导、工具、编号解析、反馈及对话存储 |
+| `backend/speech*.py` | 语音接口、音频解码与百炼 ASR |
+| `backend/tts.py`、`tts_provider.py` | 合成接口与百炼 Realtime 协议 |
+| [后端说明](backend/README.md) / [训练说明](backend/TRAINING.md) | 安装、服务与数据库接入 |
+| [图像 API 契约](docs/API-CONTRACT.md) | 图像体验与实验接口 |
+| [助手回归案例](docs/AGENT-REGRESSION.md) / [助手验证记录](docs/AGENT-EVIDENCE-VALIDATION.md) | 编号识别、主动查询、参数比较与证据边界 |
+| [语音识别说明](docs/SPEECH-EXPERIENCE.md) / [语音合成说明](docs/TTS-EXPERIENCE.md) | 接口、配置、限额与验证记录 |
+
+## 当前边界与数据保存
+
+- 当前为本地单进程原型，没有正式学生账号或完整的课堂并发验证。工作区通过 cookie 隔离；清理浏览器数据可能删除体验记录和工作区访问凭证。
+- 图像体验帧在本地后端推理，不由后端持久保存；图像实验样本、特征和分类层模型位于 `backend/data/`，预训练权重位于 `backend/models/`。实验数据库和文件需一起备份，均不随 Git 保存。
+- 预测分数不是准确率，小验证集上的 100% 也不代表泛化能力。果蔬模型仅支持预设类别，非果蔬画面也可能被分入已有类别。
+- 后端不可用时明确报错，不静默回退模拟结果。旧版 mock 模式仅用于历史演示。
+- 语音场景交互、语音实验、对象存储、Celery / Redis、公开云部署和完整用户配额管理尚未交付。静态前端预览不能代替后端服务。
+- 代码回退不等于数据库、图片或浏览器记录回退。查看历史版本前先保留未提交修改。
 
 ## 历史版本记录
 以下按版本记录当时的功能状态；当前功能以文首为准。
