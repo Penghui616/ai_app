@@ -7,7 +7,7 @@ from backend.model_spec import MODEL_ID
 
 from backend.image_io import MAX_BYTES, MAX_PIXELS, TYPES, decode_image
 
-def create_app(classifier=None, training_service=None, agent_provider=None, speech_service=None):
+def create_app(classifier=None, training_service=None, agent_provider=None, speech_service=None, tts_service=None):
     from backend.training import TrainingService, install_training
     training = training_service or TrainingService()
     engine=classifier if classifier is not None else FruitClassifier()
@@ -28,6 +28,8 @@ def create_app(classifier=None, training_service=None, agent_provider=None, spee
     install_agent(app, training, agent_provider)
     from backend.speech import install_speech
     install_speech(app, speech_service)
+    from backend.tts import install_tts
+    install_tts(app, tts_service)
 
     @app.get("/api/health")
     async def health(): return {"status":"ok","modelStatus":engine.status}

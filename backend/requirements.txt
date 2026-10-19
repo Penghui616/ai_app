@@ -14,3 +14,4 @@ python-dotenv==1.1.1
 cryptography>=44
 
 -r requirements-speech.txt
+websockets==15.0.1

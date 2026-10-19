@@ -209,10 +209,11 @@ export default function SpeechExperience({ onHome }: { onHome: () => void }) {
   const busy = phase !== 'idle';
   const material = readings.find(item => item.id === reading)!;
   return <div className="speech-page">
-    <header className="speech-heading"><Button type="text" icon={<ArrowLeftOutlined aria-hidden="true" />} onClick={onHome}>返回</Button><h1>语音识别</h1></header>
+    <header className="speech-heading"><Button type="text" icon={<ArrowLeftOutlined aria-hidden="true" />} onClick={onHome}>返回</Button></header>
+    <div className="speech-intro"><div><span className="speech-eyebrow">声音探索 / 声音 → 文字</span><h1>语音识别</h1><p>让 AI 听一听，再看看它写下了什么。</p></div><div className="speech-intro-symbol" aria-hidden="true"><AudioOutlined /><span>→</span><span>Aa</span></div></div>
     <div className="speech-columns">
       <section className="speech-card" aria-labelledby="speech-input-title">
-        <div className="speech-card-heading"><h2 id="speech-input-title"><AudioOutlined aria-hidden="true" />语音输入</h2><select aria-label="识别语言" value={language} disabled={busy || recognizing} onChange={event => { setLanguage(event.target.value as SpeechLanguage); setResult(null); }}>
+        <div className="speech-card-heading"><h2 id="speech-input-title"><span className="speech-section-number">01</span>准备声音</h2><select aria-label="识别语言" value={language} disabled={busy || recognizing} onChange={event => { setLanguage(event.target.value as SpeechLanguage); setResult(null); }}>
           <option value="zh">普通话</option><option value="en">English</option><option value="auto">自动识别</option>
         </select></div>
         <div className="speech-source" role="group" aria-label="语音输入方式">
@@ -228,8 +229,7 @@ export default function SpeechExperience({ onHome }: { onHome: () => void }) {
           </>}
         </div>
         {source === 'record' ? <>
-          <select className="speech-reading" aria-label="朗读材料" value={reading} onChange={event => setReading(event.target.value)} disabled={busy || recognizing}>{readings.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-          <div className="speech-reference">{material.text}</div>
+          <div className="speech-reading-block"><div className="speech-reading-heading"><span>不知道说什么？</span><select className="speech-reading" aria-label="朗读材料" value={reading} onChange={event => setReading(event.target.value)} disabled={busy || recognizing}>{readings.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div><div className="speech-reference">{material.text}</div></div>
           {phase === 'recording' ? <Button type="primary" danger block icon={<StopOutlined aria-hidden="true" />} onClick={stopRecording}>停止录音</Button> : <Button type="primary" block icon={<AudioOutlined aria-hidden="true" />} loading={phase === 'requesting' || phase === 'finalizing'} disabled={busy || recognizing} onClick={() => void startRecording()}>{clip ? '重新录音' : '开始录音'}</Button>}
         </> : <>
           <input ref={fileInput} type="file" accept=".wav,.mp3,.m4a,.ogg,.webm" aria-label="选择音频文件" hidden onChange={event => { const file = event.currentTarget.files?.[0]; if (file) void upload(file); }} />
@@ -243,11 +243,12 @@ export default function SpeechExperience({ onHome }: { onHome: () => void }) {
         <div className="speech-service-note"><SoundOutlined aria-hidden="true" /><span>点击“开始识别”后，音频将发送至阿里云百炼进行转写。平台不保存音频历史，参考文字不会作为识别答案；请勿录入个人敏感信息。</span></div>
       </section>
       <section className="speech-card speech-output-card" aria-labelledby="speech-result-title">
-        <div className="speech-card-heading"><h2 id="speech-result-title"><FileTextOutlined aria-hidden="true" />识别结果</h2>{result && <Button type="text" icon={<CopyOutlined aria-hidden="true" />} onClick={() => void navigator.clipboard.writeText(result.text).then(() => message.success('已复制识别文字')).catch(() => message.error('复制失败，请手动选择文字复制。'))}>复制</Button>}</div>
+        <div className="speech-card-heading"><h2 id="speech-result-title"><span className="speech-section-number">02</span>识别结果</h2>{result && <Button type="text" icon={<CopyOutlined aria-hidden="true" />} onClick={() => void navigator.clipboard.writeText(result.text).then(() => message.success('已复制识别文字')).catch(() => message.error('复制失败，请手动选择文字复制。'))}>复制</Button>}</div>
+        <p className="speech-result-caption">对照你说的话，观察有没有漏字或同音字。</p>
         <div className="speech-result" aria-live="polite">{result ? <><p>{result.text || result.notice || '未识别到文字，请检查录音内容。'}</p><small>音频 {result.durationSeconds.toFixed(1)} 秒 · 处理耗时 {(result.elapsedMs / 1000).toFixed(2)} 秒</small></> : <div className="speech-empty"><SoundOutlined aria-hidden="true" /><span>{recognizing ? '正在识别，请稍候…' : '识别结果将显示在这里'}</span></div>}</div>
         <div className="speech-output-actions"><Button icon={<ReloadOutlined aria-hidden="true" />} disabled={!result || recognizing} onClick={() => setResult(null)}>清空结果</Button><Button onClick={() => { invalidate(); setSource('record'); setLanguage('zh'); setReading('poem'); }}>重置全部</Button></div>
       </section>
     </div>
-    <aside className="speech-knowledge"><span className="speech-bulb"><BulbOutlined aria-hidden="true" /></span><div><h2>小知识：语音识别是怎么工作的？</h2><p>语音识别（Automatic Speech Recognition，ASR）将声音转成文字。模型从音频中提取特征，再推断对应的文字。你可以尝试改变语速、距离或背景噪声，观察识别结果的变化。识别文字是否正确，不等于发音是否标准。</p></div></aside>
+    <aside className="speech-knowledge"><span className="speech-bulb"><BulbOutlined aria-hidden="true" /></span><div><h2>再试一次，会有什么不同？</h2><p>用同一句话，试着放慢语速、改变距离或换一个安静的环境，再比较识别文字。语音识别将声音转成文字；识别正确不等于发音标准。</p></div></aside>
   </div>;
 }

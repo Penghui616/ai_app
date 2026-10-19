@@ -92,12 +92,13 @@
 .catalog-tile{position:relative;min-width:0;min-height:210px;display:flex;flex-direction:column;align-items:flex-start;border:0;border-right:1px solid #e0e6ee;border-bottom:1px solid #e0e6ee;background:#fff;padding:26px 26px 24px;text-align:left;cursor:pointer;transition:background .15s}
 .catalog-tile:hover:not(:disabled){background:#f1f6ff}.catalog-tile:focus-visible{outline:2px solid #3975d2;outline-offset:-3px;z-index:1}
 .catalog-tile-title{font-size:18px;color:#33455e;display:flex;align-items:center;gap:13px;font-weight:500}.catalog-tile-title .anticon{font-size:13px;color:#8fa3bd}
-.catalog-tile-description{display:block;font-size:12px;line-height:1.7;color:#9ca9ba;margin-top:11px;max-width:100%}
-.catalog-tile-status{font-size:11px;color:#809bc3;margin-top:17px}
+.catalog-tile-description{display:block;font-size:12px;line-height:1.8;color:#687c93;margin-top:11px;max-width:100%}
+.catalog-tile-status{font-size:11px;line-height:1.6;color:#476a98;background:#f0f5fc;border-radius:5px;padding:3px 8px;margin-top:14px}
 .catalog-tile-code{font-size:27px;font-weight:700;color:#e5ebf3;margin-top:auto;line-height:1;padding-top:19px}
 .catalog-tile-icon{position:absolute;right:29px;bottom:23px;font-size:42px;color:#83a9df;display:grid;place-items:center;width:78px;height:68px;background:linear-gradient(135deg,#f4f8ff,#ebf3ff);border-bottom:2px solid #c6d9f8;border-radius:12px 12px 0 0}
 .catalog-tile.unavailable{cursor:default;background:#fdfefe}.catalog-tile.unavailable .catalog-tile-title{color:#8592a5}.catalog-tile.unavailable .catalog-tile-description,.catalog-tile.unavailable .catalog-tile-status{color:#b0bac7}.catalog-tile.unavailable .catalog-tile-icon{color:#bac9dc;background:#f6f8fc;border-color:#e5ebf3}
-.catalog-demo-note{font-size:12px;color:#ac9b7c;margin:5px 0 0;line-height:1.8}
+.catalog-demo-note{font-size:12px;color:#75879b;margin:5px 0 0;line-height:1.8}
+.catalog-tile.unavailable .catalog-tile-status{background:#f1f3f6;color:#8190a3}
 
 @media(min-width:1600px){.catalog-content{padding-top:40px}.catalog-tile{min-height:230px}}
 @media(max-width:1100px){.catalog-layout{grid-template-columns:160px minmax(0,1fr)}.catalog-content{padding:30px 25px 60px}.catalog-tile{padding:23px 19px;min-height:215px}.catalog-tile-title{font-size:16px}.catalog-tile-description{font-size:11px}.catalog-tile-icon{right:18px;width:61px;height:57px;font-size:33px}.catalog-section h2>span:last-child:not(.anticon){font-size:11px}}

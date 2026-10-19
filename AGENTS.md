@@ -84,3 +84,10 @@ git diff --check
 - 音频通过后端上传百炼，参考朗读材料不作为模型输入；不保存录音或转写历史。不能将助手文字请求与音频数据混用。
 - 仅运行隔离测试和合成音频验证；真实百炼调用需用户授权程序加载配置，禁止打印密钥。
 - 默认隔离后端测试已包含语音用例；前端回归运行 node scripts/test_speech_frontend.mjs，仅启动隔离预览并拦截 API。详见 docs/SPEECH-EXPERIENCE.md。
+
+## 语音合成体验
+
+- 入口 /#/tts；backend/tts.py 与 tts_provider.py 独立于数据库，使用官方中国内地 qwen3-tts-flash-realtime。仅接收文字与六种白名单音色、语速/音调/音量，不保存历史。
+- 返回完整 WAV；必须等待成功完成事件，不把半段音频当成功。取消等待后保持服务名额至上游结束；不自动重试付费调用。
+- 复用 .env.agent 的百炼密钥，TTS_API_KEY 可覆盖。真实合成测试只允许程序加载配置，必须遵循用户授权；不得输出密钥或连接公司数据库。
+- 默认隔离测试含 test_tts.py；node scripts/test_tts_frontend.mjs 为模拟接口的浏览器检查。真实声音生成与参数效果验证另行记录，不能互相替代。详见 docs/TTS-EXPERIENCE.md。
